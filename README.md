@@ -3,4 +3,4 @@ Configure any app you like using OMA-DM. This little tool will automatically con
 
 This project is currently in alpha status. We have a working client that can be deployed as Win32 App or MSI LoB and some scripts that generate ready to use policy templates.
 
-However the code is still a little dirty so don't judge me ;).
+However the code is still a little dirty so don't judge me ;). The powershell code -as it is published here- has been digitally signed using a public code signature.
