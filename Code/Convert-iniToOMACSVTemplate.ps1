@@ -24,6 +24,9 @@
        
      .Parameter Context  
         Specify wether the policy is applied in SYSTEM or USER context.
+
+     .Parameter Operation
+        Defines how the PolicyApplicator Agent will apply the configuration on the system. If you don't know what to do here just ignore it.
           
      .Parameter OutputFilePath  
         Specify a filename where you would like to save the intune policy for later upload. 
@@ -46,6 +49,7 @@ param(
     [Parameter(Mandatory=$True)][string]$AppPolicyName,
 
     [ValidateSet("User","Machine")]$Context,
+    [ValidateSet("Create", "Update", "Replace", "Delete")]$Operation = "Replace",
 
     [Parameter(Mandatory=$True)][string]$OutputFilePath
 );
@@ -166,8 +170,8 @@ $OMA_DM | Select-Object -Property displayName,description,omauri,value | Export-
 # SIG # Begin signature block
 # MIIWYAYJKoZIhvcNAQcCoIIWUTCCFk0CAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUC0gou+10KbIK0NZ4LoMIxAla
-# dhygghBKMIIE3DCCA8SgAwIBAgIRAP5n5PFaJOPGDVR8oCDCdnAwDQYJKoZIhvcN
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUqV+dAynfo6tAwnWAdIdESCSS
+# wMugghBKMIIE3DCCA8SgAwIBAgIRAP5n5PFaJOPGDVR8oCDCdnAwDQYJKoZIhvcN
 # AQELBQAwfjELMAkGA1UEBhMCUEwxIjAgBgNVBAoTGVVuaXpldG8gVGVjaG5vbG9n
 # aWVzIFMuQS4xJzAlBgNVBAsTHkNlcnR1bSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0
 # eTEiMCAGA1UEAxMZQ2VydHVtIFRydXN0ZWQgTmV0d29yayBDQTAeFw0xNjAzMDgx
@@ -259,29 +263,29 @@ $OMA_DM | Select-Object -Property displayName,description,omauri,value | Export-
 # IExpbWl0ZWQxIzAhBgNVBAMTGkNPTU9ETyBSU0EgQ29kZSBTaWduaW5nIENBAhEA
 # 1COFaExESSMmfunez9AKZDAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAig
 # AoAAoQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgEL
-# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQU3XiD6asGOtbbqDKN3u1W
-# +Wo23UMwDQYJKoZIhvcNAQEBBQAEggEARSdTfBhu8rxeEPN8lk3Qae0oUlh4SyO7
-# d6AjqYz6nswyXsW3Gr9g+WMnUo9bnyw4VvN2AxBV3tcet6Ce4Wvw9UvuvUPl390U
-# yllSo92Ishj+pywfivYjG0GhiGWPPBCZtThSlOgebHKGrJTvthybTm8Nwosi2K1l
-# Ni8WhhvP4Cw9ZXmMcDxB2eaJSdaeaKdAN2kACYZYEG0JkXEwRlAToQipeKTS/BVj
-# GHbdHI3ox4j6++uaLhWgE20GQzBUs1yjjq2xkYXSC8NzCYs1balPl47wiwvFXpys
-# 4WIIoA1QUkrIPOLSAyzyUo2T8+GfXGFLErMPZtswZBQBouZzUxG3eKGCA0gwggNE
+# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUHWm4BtlnmFwbNYv5QXPK
+# WtrlgA8wDQYJKoZIhvcNAQEBBQAEggEApiR5Rsk91wpmYC7WQYyPErnir1FubTI5
+# 7LsShO/4erPPZfEooskB+SZNKoe9uaW0EM+QfNI0P+v68SO38C0UT+7BDXczlzgz
+# nlO6Z1W29eRgGfZgXwCrBSElIG592biry9Lha+ijmjy7Y5b3O0S1mgCrTDgx5o1N
+# iaD/BeZ58ge+hVLaVOYAj8eAQcRsTjfJHZVkd+sgEvSTwm6ZK8Ohqnsa8lNj8Oh+
+# trHK+rvZQFnUA/1l7lCC0hkgW4tu2DMgX9lqBMLlERyqc1mJ5wAe3wKOQZ/pd04c
+# Ivh3m3qeDvPxNnBqgFs7zGm70sUyIdZ8Xk67mqjxh8J4NO6FDSmRraGCA0gwggNE
 # BgkqhkiG9w0BCQYxggM1MIIDMQIBATCBkzB+MQswCQYDVQQGEwJQTDEiMCAGA1UE
 # ChMZVW5pemV0byBUZWNobm9sb2dpZXMgUy5BLjEnMCUGA1UECxMeQ2VydHVtIENl
 # cnRpZmljYXRpb24gQXV0aG9yaXR5MSIwIAYDVQQDExlDZXJ0dW0gVHJ1c3RlZCBO
 # ZXR3b3JrIENBAhEA/mfk8Vok48YNVHygIMJ2cDANBglghkgBZQMEAgEFAKCCAXIw
 # GgYJKoZIhvcNAQkDMQ0GCyqGSIb3DQEJEAEEMBwGCSqGSIb3DQEJBTEPFw0yMTAz
-# MTkyMTE1NDdaMC8GCSqGSIb3DQEJBDEiBCCR8elF/wrPqEvy6XkuznZ/7bC/IXIV
-# BqYvIejXWIEjUTA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCDZyqvDIltwMM24PjhG
+# MTkyMjQ3NTNaMC8GCSqGSIb3DQEJBDEiBCDf9ee70skUHI7AN5lZA4RJvKkgeyqR
+# 5b7hNeW4wyj8TTA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCDZyqvDIltwMM24PjhG
 # 42kcFO15CxdkzhtPBDFXiZxcWDCBywYLKoZIhvcNAQkQAgwxgbswgbgwgbUwgbIE
 # FE+NTEgGSUJq74uG1NX8eTLnFC2FMIGZMIGDpIGAMH4xCzAJBgNVBAYTAlBMMSIw
 # IAYDVQQKExlVbml6ZXRvIFRlY2hub2xvZ2llcyBTLkEuMScwJQYDVQQLEx5DZXJ0
 # dW0gQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkxIjAgBgNVBAMTGUNlcnR1bSBUcnVz
 # dGVkIE5ldHdvcmsgQ0ECEQD+Z+TxWiTjxg1UfKAgwnZwMA0GCSqGSIb3DQEBAQUA
-# BIIBAJd8Y5vRO4rC3UOfip2RSYVe39lF6lWNbRfMKiDzBTSmsyF6qw1SVaJYfm1r
-# fxQnLSmGxtJLkHwSHuqjRt7C2ixN/NV8uFwAnvL11h4EXBB7Rl5w7uikTLViBUVB
-# 45Xo4PUlE2+s2LAQpF7yD/X715UHFx4hNI8/3JfCH+QrGp2vkb5KonFS1aK5505t
-# 6CFtG72WK+6cM/YeBMSwP4v/kVq+27cV+qDpneBngtr63a2kw+19XtcsZ3CpQB27
-# AE5aUOHFtnVRp1oQMnsh2yqFcNCiTQwuoz8SVLakugu4MexOztsXyYBxohAehhzy
-# K6DE8M9BlZjdsCfIjDK9EbgH+EE=
+# BIIBADUc+hliZWG/UiVSbcBcAvyrVP0KJu8/k+sZTRXE5JOSZGcWMphFog61poRO
+# iKaEmVGTxNNVMPVGkQplPxrNhBUxTyHkKFkq4DFNzL6zQbMyXMqY4qllolajW2kW
+# TH5MygjhTIOnkvPRE0G7XCSC9UO3V/b21v0fnzBk5syWg0OFQ+cSJYglFiNNXm8Y
+# s4oT1CjS9e9yDILBDUfWD4215XIEBdcCyPvwg2G1bbcj6RBwnvAirSI9fdqbw341
+# lNDRslOIXTzMKGgL5XTrRxH1rnkuGEJwjUZ598LaFfP2QdgiktCuP3t48xy0Uo6A
+# QHgvSTa+9fevk2EiYrWQ28UUN8o=
 # SIG # End signature block

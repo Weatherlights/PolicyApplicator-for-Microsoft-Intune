@@ -24,6 +24,9 @@
        
      .Parameter Context  
         Specify wether the policy is applied in SYSTEM or USER context.
+
+     .Parameter Operation
+        Defines how the PolicyApplicator Agent will apply the configuration on the system. If you don't know what to do here just ignore it.
           
      .Parameter OutputFilePath  
         Specify a filename where you would like to save the intune policy for later upload. 
@@ -46,6 +49,7 @@ param(
     [Parameter(Mandatory=$True)][string]$AppPolicyName,
 
     [ValidateSet("User","Machine")]$Context,
+    [ValidateSet("Create", "Update", "Replace", "Delete")]$Operation = "Replace",
 
     [Parameter(Mandatory=$True)][string]$OutputFilePath
 );
@@ -78,7 +82,7 @@ ForEach ( $xmlObject in $outerXmlObjects ) {
         "Xpath" = $Xpath;
         "Value" = $Value;
         "Namespace" = $namespace;
-        "Operation" = "Replace";
+        "Operation" = "$Operation";
     };
 
     $xpathsToConfigure += $xpathToConfigure;
@@ -222,8 +226,8 @@ $omaConfigs | Select-Object -Property displayName,description,omauri,value | Exp
 # SIG # Begin signature block
 # MIIWYAYJKoZIhvcNAQcCoIIWUTCCFk0CAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUQqIDV+hpyBgWyL8/dPHCSPp7
-# 69WgghBKMIIE3DCCA8SgAwIBAgIRAP5n5PFaJOPGDVR8oCDCdnAwDQYJKoZIhvcN
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQULIwE5nTT6Gbq9bsN26uvUFzn
+# E4ygghBKMIIE3DCCA8SgAwIBAgIRAP5n5PFaJOPGDVR8oCDCdnAwDQYJKoZIhvcN
 # AQELBQAwfjELMAkGA1UEBhMCUEwxIjAgBgNVBAoTGVVuaXpldG8gVGVjaG5vbG9n
 # aWVzIFMuQS4xJzAlBgNVBAsTHkNlcnR1bSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0
 # eTEiMCAGA1UEAxMZQ2VydHVtIFRydXN0ZWQgTmV0d29yayBDQTAeFw0xNjAzMDgx
@@ -315,29 +319,29 @@ $omaConfigs | Select-Object -Property displayName,description,omauri,value | Exp
 # IExpbWl0ZWQxIzAhBgNVBAMTGkNPTU9ETyBSU0EgQ29kZSBTaWduaW5nIENBAhEA
 # 1COFaExESSMmfunez9AKZDAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAig
 # AoAAoQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgEL
-# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUVx9YUVfwQ+sXgD6R2vTo
-# DQkpKJIwDQYJKoZIhvcNAQEBBQAEggEAt+BaWqQGUbVZPVKD3scBqydZZxcQ3ueb
-# kDoX7/dsghD2g8wJZyySJwHy5iWCmelqiYEW/2Y5Ba0CfsAtDkQwW5tP3ZIFL0sj
-# JuSkQg91GZzQMkfgRAinq+nYLje5TK0Pe9uXoP1bbaEGCWn0DgNzoUVWfVgKZwdR
-# AmRF++tMs9txPqAOmgLPa98QFNkCXxGTR4icAIzDVuLjXY6i7P6CSLGbStZQklad
-# ssZq36jK/66tjI3aOE7Fix5zfsIbYpmN1nxRCv9tkfUIdY7Zc70IC8Pcy0u7MdRy
-# WyxC9aVpcTjpCedIG62/PhUuIjV6Su7O0Wg1/v2a/rfzoOMtLRyVoqGCA0gwggNE
+# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUgDx2Wko4dzmnNUQ+MQNA
+# +t2yA64wDQYJKoZIhvcNAQEBBQAEggEArMdL2rBJPuaybYZaNqFNF7t1aJCVU8Ss
+# ikTP18xVBsDsGHFdaDko312lZJP6NrxeAmG4Kewjf1+Px6sUg2n0fytnu2Vdl30n
+# 37UTcyVHY8VwOgi2sr7VnBqaCYAC487gi9UcPq6pk+GWkIml6CKWqjBetmlQ1rFJ
+# OXZHiJ3yChWbzMZEkaLRzvCMCuuR38b6fM1lqjm0PKHJitS+rwMDVaT54sLoFmTY
+# mdx5oRaEdHTVxMKy9WPU50238LMbIt3Imvcr3j9D7Cm2XCLGWLrNe2Pq3/HzR12J
+# GA2GQ6vrvDMDVu2buW6zW9ldc88vukxlR6eKsN/sPh76O1wBpNCiuKGCA0gwggNE
 # BgkqhkiG9w0BCQYxggM1MIIDMQIBATCBkzB+MQswCQYDVQQGEwJQTDEiMCAGA1UE
 # ChMZVW5pemV0byBUZWNobm9sb2dpZXMgUy5BLjEnMCUGA1UECxMeQ2VydHVtIENl
 # cnRpZmljYXRpb24gQXV0aG9yaXR5MSIwIAYDVQQDExlDZXJ0dW0gVHJ1c3RlZCBO
 # ZXR3b3JrIENBAhEA/mfk8Vok48YNVHygIMJ2cDANBglghkgBZQMEAgEFAKCCAXIw
 # GgYJKoZIhvcNAQkDMQ0GCyqGSIb3DQEJEAEEMBwGCSqGSIb3DQEJBTEPFw0yMTAz
-# MTkyMTE1NDhaMC8GCSqGSIb3DQEJBDEiBCDPYMdkgVIE71+QL6Xiim2i583MadPf
-# hvgpD6U6VH2FijA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCDZyqvDIltwMM24PjhG
+# MTkyMjQ3NTRaMC8GCSqGSIb3DQEJBDEiBCCegDIGPpzLRqaV1sYLhy+BDmaXHJvJ
+# MseKJ4jB2GmPdDA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCDZyqvDIltwMM24PjhG
 # 42kcFO15CxdkzhtPBDFXiZxcWDCBywYLKoZIhvcNAQkQAgwxgbswgbgwgbUwgbIE
 # FE+NTEgGSUJq74uG1NX8eTLnFC2FMIGZMIGDpIGAMH4xCzAJBgNVBAYTAlBMMSIw
 # IAYDVQQKExlVbml6ZXRvIFRlY2hub2xvZ2llcyBTLkEuMScwJQYDVQQLEx5DZXJ0
 # dW0gQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkxIjAgBgNVBAMTGUNlcnR1bSBUcnVz
 # dGVkIE5ldHdvcmsgQ0ECEQD+Z+TxWiTjxg1UfKAgwnZwMA0GCSqGSIb3DQEBAQUA
-# BIIBAEghLPI720qUDQOqSKyEkpzv2WgaMOV4wjR0rnhvQWa3wQYdfqqcyVxbeH0U
-# KTdsMcDjsQpdAmyWMVU8RKy4EpSTTKZPy8YVUVhdRL+L5Qe8nRsydm57mwS0rM2b
-# qAj8e5uwt0R6xLN2xvy2FMvKUUbPYsvHFL1pQqCo6uwmf9YIIq1lPkS2rLeP/44G
-# 9IoyY3gfT182fbJWHMgI0bBkk5jjrfxS/32pGg/zxA3SZdeWo7etF3UsOxpDaDf6
-# 3xIs1h+uQyxUoqQ+QTZw3Lz10VOD5zX3WA5piXBPTioJ+0fAHgdv3yIM5XgPKwow
-# YTlggrLxH3epi9Ur+hhK+U4jYzk=
+# BIIBALi2yJx+9e2jR0f9vFNI3BJNxj+OPWcL8G1C6kONQGnGPAdh83Yn7IIhVJim
+# Sx6xlDSbZUd+WbW7B05TuHHhx9se1Ei+54ou/hje0rvtWijQuLragLHuZEIy2WzQ
+# gSTbxgigicQS1QEoFt+qWT8IV8Mu6+y7V/HSjm1AY9KfZ/kpWQ5P4+PJbeTepg3a
+# x6y/vLh1Jf+u6Uq59hBi0ytseS/+8CwsFR/ACZ4dqcS7RbnMJuBD2AV4b+Oh57Av
+# vewCXIl0yUH3l/qB0/nEoTdeN3SN738szeHlks/VDpcSmQn5csv59gmqAhww5C1K
+# 6Qwtdjrbc8Fcee5HM55DJa6rG2I=
 # SIG # End signature block
