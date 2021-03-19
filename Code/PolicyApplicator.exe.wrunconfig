@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<config>
+  <Process>
+    <Filename>powershell.exe</Filename>
+    <WorkingDirectory>[APPDIR]</WorkingDirectory>
+    <Arguments>-executionpolicy AllSigned -windowstyle hidden -file .\PolicyApplicator.ps1 -Action Remediate [ARGS]</Arguments>
+    <WindowStyle>Hidden</WindowStyle>
+  </Process>
+</config>
