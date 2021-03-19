@@ -1,4 +1,4 @@
-This is the ready to use agent installer. You need to deploy the agent installer to your intune managed devices so the policies get applied.
+This is the ready to use agent installer. You need to deploy the agent installer to your intune managed devices so the policies getting applied.
 
 The agent installer does 3 things:
 * Install the following files:
