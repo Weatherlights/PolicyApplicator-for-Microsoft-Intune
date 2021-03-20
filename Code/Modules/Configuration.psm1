@@ -14,7 +14,8 @@ forEach ( $registryKey in $registryKeys ) {
 
         $FileType = $registryKey.GetValue("Mode")
         $CreateFile = $registryKey.GetValue("CreateFile");
-        $FilePath = $registryKey.GetValue("Path")
+        $FilePath = $registryKey.GetValue("Path");
+        $Encoding = $registryKey.GetValue("Encoding");
 
         #### Resolve system variables tagged with %-symbol
         Select-String -Pattern '\%(.+?)\%' -InputObject $FilePath -AllMatches |
@@ -37,8 +38,6 @@ forEach ( $registryKey in $registryKeys ) {
 
             switch ( $FileType ) {
                 "ini" {
-                    [xml]$registryKeyPropertyXml = ConvertTo-EncodedToString -InputObject $registryKeyProperty
-
                     $iniSection = $configKey.GetValue("section");
                     $iniKey = $configKey.GetValue("key");
                     $iniValue = $configKey.GetValue("value");
@@ -100,7 +99,7 @@ forEach ( $registryKey in $registryKeys ) {
             }
         }
 
-        $fileConfig = @{ "FileType" = $FileType; "FilePath" = $FilePath; "CreateFile" = $CreateFile; "Rules" = $rules }
+        $fileConfig = @{ "FileType" = $FileType; "FilePath" = $FilePath; "CreateFile" = $CreateFile; "Encoding" = $Encoding; "Rules" = $rules }
         if ( $FileType -ne "Disabled" ) {
             $config += $fileConfig
         }
@@ -111,8 +110,8 @@ forEach ( $registryKey in $registryKeys ) {
 # SIG # Begin signature block
 # MIIWYAYJKoZIhvcNAQcCoIIWUTCCFk0CAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUGPH1Ehrx2ytxpAGTfxgSV7rF
-# UxKgghBKMIIE3DCCA8SgAwIBAgIRAP5n5PFaJOPGDVR8oCDCdnAwDQYJKoZIhvcN
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUrbCnNE0sPSXev928jfK6yokT
+# fc2gghBKMIIE3DCCA8SgAwIBAgIRAP5n5PFaJOPGDVR8oCDCdnAwDQYJKoZIhvcN
 # AQELBQAwfjELMAkGA1UEBhMCUEwxIjAgBgNVBAoTGVVuaXpldG8gVGVjaG5vbG9n
 # aWVzIFMuQS4xJzAlBgNVBAsTHkNlcnR1bSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0
 # eTEiMCAGA1UEAxMZQ2VydHVtIFRydXN0ZWQgTmV0d29yayBDQTAeFw0xNjAzMDgx
@@ -204,29 +203,29 @@ forEach ( $registryKey in $registryKeys ) {
 # IExpbWl0ZWQxIzAhBgNVBAMTGkNPTU9ETyBSU0EgQ29kZSBTaWduaW5nIENBAhEA
 # 1COFaExESSMmfunez9AKZDAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAig
 # AoAAoQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgEL
-# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUtjny+/+Cdc5G0IF0qHBF
-# R+a4BVcwDQYJKoZIhvcNAQEBBQAEggEAVHh+alSsqCY7l7j+HjW34jQISpdVmEw2
-# DizpOQflD0zXTVlFV0239grmFejHu1zPuc7qPmzefPPGlpoeC+1foWQ+PMon4nwY
-# QF4c4F1yHDi+pQAp1y750QjGirUQDTF/1ARKSBhHaKpk25SU3rsKU9ofyooVBsWw
-# q8+eNULxsQKpiueZdyH8H5tbl9WETGdvffeNxD/0UspSu2pv3Ho4z99ZXPAiXhaz
-# pCwUTmd6CjMp1aSGrB5SaGCAoOnQ/cfZIVCIyMM5t0iu13x2g8y73OA+72z9LvK9
-# v4+WWJ26QKVuECNEw8Bd5IktnT79qkxUs64y/k5DOB6kbetQRI0eJ6GCA0gwggNE
+# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUQP6MaqAxQGuNFGoRqMFe
+# 0R5wv/owDQYJKoZIhvcNAQEBBQAEggEAlxNTetXsBodeZ0MIr56BLeff6UGEoEpE
+# sCT+kNpGgfZXoBuX3Fsjx2g3F/5V+Ff+b+OuCHzTFWPNPy5omZ/0IoNZbqpQaf89
+# PtByPmcH+faTrixz81Ya/+LYYURAoREV/UEQzep+0usqPm5rsJVeeGK8IJmUnIF+
+# 1IgOGkRbACSKmb24PkLPQffspCgoqp3DrSxEOnN4dpyHh5qFFIIcIh4VMNxK5QNY
+# 4e1VRJAKIw+NyUAE3Z8Yf0ZYflj8+G3NhZhf+QaiYfiwevAgFgqKG8d2nbhHvblx
+# XmGO6rXtcB+IwpxzXdo665cxudQnoVS+HxLAk9CSiLbaBuTchWMZh6GCA0gwggNE
 # BgkqhkiG9w0BCQYxggM1MIIDMQIBATCBkzB+MQswCQYDVQQGEwJQTDEiMCAGA1UE
 # ChMZVW5pemV0byBUZWNobm9sb2dpZXMgUy5BLjEnMCUGA1UECxMeQ2VydHVtIENl
 # cnRpZmljYXRpb24gQXV0aG9yaXR5MSIwIAYDVQQDExlDZXJ0dW0gVHJ1c3RlZCBO
 # ZXR3b3JrIENBAhEA/mfk8Vok48YNVHygIMJ2cDANBglghkgBZQMEAgEFAKCCAXIw
 # GgYJKoZIhvcNAQkDMQ0GCyqGSIb3DQEJEAEEMBwGCSqGSIb3DQEJBTEPFw0yMTAz
-# MTkyMTE1NDRaMC8GCSqGSIb3DQEJBDEiBCDMv8gCw9ZRPHlAD7JHNO8JSfo1X6pb
-# /+Auq2R3AiIzfTA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCDZyqvDIltwMM24PjhG
+# MjAxNjIyMDhaMC8GCSqGSIb3DQEJBDEiBCCeswbqR3Vl/quwHHbMNNGDmSqTBIvj
+# EafNpiXNMsF5FjA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCDZyqvDIltwMM24PjhG
 # 42kcFO15CxdkzhtPBDFXiZxcWDCBywYLKoZIhvcNAQkQAgwxgbswgbgwgbUwgbIE
 # FE+NTEgGSUJq74uG1NX8eTLnFC2FMIGZMIGDpIGAMH4xCzAJBgNVBAYTAlBMMSIw
 # IAYDVQQKExlVbml6ZXRvIFRlY2hub2xvZ2llcyBTLkEuMScwJQYDVQQLEx5DZXJ0
 # dW0gQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkxIjAgBgNVBAMTGUNlcnR1bSBUcnVz
 # dGVkIE5ldHdvcmsgQ0ECEQD+Z+TxWiTjxg1UfKAgwnZwMA0GCSqGSIb3DQEBAQUA
-# BIIBAEHAQJOc5A3BNDgjq6s8bs3DuUtUZrpgEkR7ZVjiTR8Lhx32UlZqkQ5gU31J
-# HER76pDSN2fZ2bBFJ3pASQZfhUhni35EHjLwUq4WbB51pTIxB/Zf1i8eJn8pvIC0
-# p4iCzEaZyq0kJWGKO7iIiuHEfBtjyOhCRNwc6gFvc+Swgf8PAEaE308Xzn32O9+p
-# HQScMFIkXNxpQ+KAPjpDxtlu/RqixGyuWSqh6hjJTDr+4FRnQCJRsFXitJdlcHyI
-# kntqEYqN5skWwAZu/w6va68lK8U867xEtCBFFfA6UdbgukybNNPvHVVu6OCIUUuF
-# 0vPhXugRI1lYwP2Mp/c/syglpkU=
+# BIIBAE7hQAOqvlm2Q1lGYgzAKj12NOAqkIggrLPjIDHWAJHnOuxCM5KMAlDw9Egz
+# MAryOYSpLXP8yNPCy0lbKrhHNbb8JuWBj7pteMQfEnGOZoI9ZEVqTq+PHz1Y8TdZ
+# 1SSXiRHEA2s9mW8DKEZCiszvfOvAfLPgb8g6aweMlfLaGdFKSqdqppxASWWFxjcZ
+# ijXC1SYOioa+h7p9ky9sIp3NV0OrtgJh4WFHlcSOPx3P1n9UbsvRIghBRtwRPi1d
+# 5Wq/8cB3Nog1D4EXAgdEFvKezTKqWlxVABwDuff0lje7E+E/Tm9M2LWUksMGol6c
+# jO/mZIWppBWtO7iClG77AD2qYmg=
 # SIG # End signature block

@@ -22,10 +22,6 @@ ForEach ( $module in $modulesToLoad ) {
     Import-Module $module.FullName;
 }
 
-
-$scriptName = $MyInvocation.MyCommand.Name
-
-
 Write-LogFile -InputObject "====================== Script has started ======================";
 Write-LogFile -InputObject "RunMode: $Action";
 ### Determine wether we run as System or not.
@@ -48,19 +44,19 @@ ForEach ( $config in $configs ) {
     Write-LogFile -InputObject "Working on file $filepath with type $fileType.";
     switch ( $config.FileType ) {
         "ini" {
-            $returned_compliance = Invoke-IniRemediation -Action $Action -FilePath $filePath -Rules $config.Rules -CreateFile $Config.CreateFile   
+            $returned_compliance = Invoke-IniRemediation -Action $Action -FilePath $filePath -Rules $config.Rules -CreateFile $Config.CreateFile -Encoding $Config.Encoding
             if ( $returned_compliance -ne "Compliant" ) {
                 $compliance = "Non-Compliant";
             }
          }
          "list" {
-            $returned_compliance = Invoke-ListRemediation -Action $Action -FilePath $filePath -Rules $config.Rules -CreateFile $Config.CreateFile 
+            $returned_compliance = Invoke-ListRemediation -Action $Action -FilePath $filePath -Rules $config.Rules -CreateFile $Config.CreateFile -Encoding $Config.Encoding
             if ( $returned_compliance -ne "Compliant" ) {
                 $compliance = "Non-Compliant";
             }
          }
          "xml" {
-            $returned_compliance = Invoke-XmlRemediation -Action $Action -FilePath $filePath -Rules $config.Rules -Encoding utf8 -CreateFile $Config.CreateFile 
+            $returned_compliance = Invoke-XmlRemediation -Action $Action -FilePath $filePath -Rules $config.Rules -CreateFile $Config.CreateFile -Encoding $Config.Encoding 
             if ( $returned_compliance -ne "Compliant" ) {
                 $compliance = "Non-Compliant";
             }
@@ -81,8 +77,8 @@ if ( $compliance -eq "Non-Compliant" ) {
 # SIG # Begin signature block
 # MIIWYAYJKoZIhvcNAQcCoIIWUTCCFk0CAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU5v+rFlMc2iSwjwb/JejD2tOO
-# VeWgghBKMIIE3DCCA8SgAwIBAgIRAP5n5PFaJOPGDVR8oCDCdnAwDQYJKoZIhvcN
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUxB0VygxN9NEgem6PHHf0TgeT
+# wMWgghBKMIIE3DCCA8SgAwIBAgIRAP5n5PFaJOPGDVR8oCDCdnAwDQYJKoZIhvcN
 # AQELBQAwfjELMAkGA1UEBhMCUEwxIjAgBgNVBAoTGVVuaXpldG8gVGVjaG5vbG9n
 # aWVzIFMuQS4xJzAlBgNVBAsTHkNlcnR1bSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0
 # eTEiMCAGA1UEAxMZQ2VydHVtIFRydXN0ZWQgTmV0d29yayBDQTAeFw0xNjAzMDgx
@@ -174,29 +170,29 @@ if ( $compliance -eq "Non-Compliant" ) {
 # IExpbWl0ZWQxIzAhBgNVBAMTGkNPTU9ETyBSU0EgQ29kZSBTaWduaW5nIENBAhEA
 # 1COFaExESSMmfunez9AKZDAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAig
 # AoAAoQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgEL
-# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQU6dDZZ9H8aVJZil1VBPDd
-# AeZ3NWMwDQYJKoZIhvcNAQEBBQAEggEAieuyrCYGX2kijpKzIiYgvJb2v4T9aNEa
-# EmrR4Ikxe0hVR4eDv6h76NPRik+R9sjE9Ef0eLsu/D73YVYTA+v4tOA4eER8syFw
-# wgswmpmgbcTtKgt9JXs6wRI3cYZQmLbqe5Q/yJfu2YvI5iFnD6IGmV8SgMmZHqWt
-# 1MuRHNkKBpoJDNv6mJD5idXFL+o5PMPCHyt0nanNeQtmtoKcMcQo1lL6kxG5gUql
-# hYZqlz7ucAVzdRYqZvFYDHSC5x0TXa7igHHgTllzvL9Z86igoexDfORMGuzq9QY8
-# RyfgPB2sPJHrOfNGe268GYOQpX0sFD72jX/7fgB2AJJrxVfpwUT8WaGCA0gwggNE
+# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUuffsUJg4gxw1cFtd3EmL
+# J6Lc4mEwDQYJKoZIhvcNAQEBBQAEggEAaaUS2dYWLM2vnYoFu52NiJ2YBQIEmIsM
+# vEDAEyRQceREGI0SmVNbjt46U4OxfcaoFb5TXCVtuhVkkinYj8ICvD3HWv2kCbpf
+# JV5AWrCkGbRkIMHLh7yO3Jcb6YuZeo9kLOzPUdAmKPrvEdH4+02KH96M4NZdGtGQ
+# ZRtExjymopdg4GtRdcdD+Lv6+vJpbl34EX1IR5WlZVqC0Qm5LTqJmEjUTs7Z/qAY
+# QqraVND6BU9c0CYoH/hwYnOhmI8+TiNsMjPhoi6t8QY4syBEu12KVkxZWuXHnjtz
+# HUlZyTYtZoaTzH97egVio+aBmJDJdSPsjLqDbWJ5B2NkOv0SlfRLyKGCA0gwggNE
 # BgkqhkiG9w0BCQYxggM1MIIDMQIBATCBkzB+MQswCQYDVQQGEwJQTDEiMCAGA1UE
 # ChMZVW5pemV0byBUZWNobm9sb2dpZXMgUy5BLjEnMCUGA1UECxMeQ2VydHVtIENl
 # cnRpZmljYXRpb24gQXV0aG9yaXR5MSIwIAYDVQQDExlDZXJ0dW0gVHJ1c3RlZCBO
 # ZXR3b3JrIENBAhEA/mfk8Vok48YNVHygIMJ2cDANBglghkgBZQMEAgEFAKCCAXIw
 # GgYJKoZIhvcNAQkDMQ0GCyqGSIb3DQEJEAEEMBwGCSqGSIb3DQEJBTEPFw0yMTAz
-# MTkyMTE1NDdaMC8GCSqGSIb3DQEJBDEiBCBPGH3x+TKXJA8VheuFNCpNSyIE6DME
-# xdvb5tF+8UXKpjA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCDZyqvDIltwMM24PjhG
+# MjAxNjIyMTFaMC8GCSqGSIb3DQEJBDEiBCB9QtGdx7Kb6BJDTI+1WPg6lFHtlhSP
+# obYU6PAjseNR1DA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCDZyqvDIltwMM24PjhG
 # 42kcFO15CxdkzhtPBDFXiZxcWDCBywYLKoZIhvcNAQkQAgwxgbswgbgwgbUwgbIE
 # FE+NTEgGSUJq74uG1NX8eTLnFC2FMIGZMIGDpIGAMH4xCzAJBgNVBAYTAlBMMSIw
 # IAYDVQQKExlVbml6ZXRvIFRlY2hub2xvZ2llcyBTLkEuMScwJQYDVQQLEx5DZXJ0
 # dW0gQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkxIjAgBgNVBAMTGUNlcnR1bSBUcnVz
 # dGVkIE5ldHdvcmsgQ0ECEQD+Z+TxWiTjxg1UfKAgwnZwMA0GCSqGSIb3DQEBAQUA
-# BIIBALYCy+0xHC8+66RBX1jmrh84xPXSUljQ6rBKtrFjRUgaMIKC0KBlPM5CIfYO
-# JgbdM+phfO7JEeWkcy0TQfzYqPoqVOq1hTkj81y5QI/L5pTzWY8PpFxAIRzlMSQ7
-# CAqo5oKiU4DwAPGMhlAKoBsE8XzWT5UyNYTOwTeoFf5/0+F+eEiaGmil8o9Z1kX6
-# Bh0SZD0yeOX1DHwnh7O7YdEKYHV/5gVZbb98xv+cAt52AE8Nv+Ptdwhvdce30kMg
-# 1Q6hGc2k2BA6v+/p50Q2fUmc19SaRrYqQoGk/mHE6obUQ/yfUBsCEB5sh6RzWhnU
-# MowNqhwQMKhGV3vSiAZIN3rXvf8=
+# BIIBAB5m+7WOSqW8yD/kFN5VxHC3SZdiAKlVb0u/BV1h/uk6MLcn7rq2Y8UEtuQp
+# XJgO6w3+sbKJgP1Yd4R/FtKkz87PTP2R8VVcHx0ccvyDbwGfiKzE9bhUwJ647uSE
+# s52qq8nsj753w7UWm/dNMqDbUM0W/4BNp5paIKEb4Z31pzdF0oDAEzsqHmbY7CyN
+# EuA2ARpppi760aljBg6aLJ3zxjTjimvo7kk/2r2PO3ZQ8Iv8yzmr2BJUsBKAT+qk
+# hJpdIa4/2EsqF2FRphrFhGvFiJYGJnfghpgfvjUqlIsCTM2wyUTr0gplOShxh9pE
+# pH7cAnqh/gC+3eHGQvsLzwLDLsI=
 # SIG # End signature block
