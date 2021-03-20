@@ -5,7 +5,7 @@ This project is currently in alpha status. We have a working client that can be 
 
 However the code is still a little dirty so don't judge me ;). The powershell code -as it is published here- has been digitally signed using a public code signature.
 ## Key Features
-* Creats an ADMX policy template and all corresponding OMA-URIs from any ini-, xml- or list file.
+* Creates an ADMX policy template and all corresponding OMA-URIs from any ini-, xml- or list file.
 * Upload your created files into the intune console.
 * Supports different operations:
   * Create: Create settings that do not exist
