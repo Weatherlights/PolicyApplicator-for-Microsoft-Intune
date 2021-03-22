@@ -178,13 +178,22 @@ For ( $i = 0; $i -lt $policyMap.count; $i++ ) {
 
     $policyNamespaceValue = "";
 
-    ForEach ( $namespaceKey in $policyMap[$i].Namespace.Keys ) {
-        $namespaceURI = $PolicyMap[$i].Namespace."$namespaceKey";
-        $policyNamespaceValue += "$namespaceKey&#xF000;$namespaceURI&#xF000;";
+    if ( $policyMap[$i].Namespace.Count -gt 0 ) {
+        ForEach ( $namespaceKey in $policyMap[$i].Namespace.Keys ) {
+            $namespaceURI = $PolicyMap[$i].Namespace."$namespaceKey";
+            $policyNamespaceValue += "$namespaceKey&#xF000;$namespaceURI&#xF000;";
+        } 
+        $policyNamespaceValue = $policyNamespaceValue -replace "&#xF000;$", "";
+    } else {
+        $policyNamespaceValue += "__DUMMY__&#xF000;nth://removemeifyouneedtoreplacethis"
     }
-    $policyNamespaceValue = $policyNamespaceValue -replace "&#xF000;$", "";
 
-    $configuredValue = '<enabled/><data id="'+$policyName+'-value" value="'+$policyValue+'"/><data id="'+$policyName+'-operation" value="'+$policyOperation+'"/><data id="'+$policyName+'-xpath" value="'+$policyxPath+'"/><data id="'+$policyName+'-namespace" value="'+$policyNamespaceValue+'"/>';
+   
+    $configuredValue = '<enabled/>
+<data id="'+$policyName+'-value" value="'+$policyValue+'"/>
+<data id="'+$policyName+'-operation" value="'+$policyOperation+'"/>
+<data id="'+$policyName+'-xpath" value="'+$policyxPath+'"/>
+<data id="'+$policyName+'-namespace" value="'+$policyNamespaceValue+'"/>';
 
      $omaConfig = [PSCustomObject]@{
             "@odata.type" = "#microsoft.graph.omaSettingString";
@@ -223,8 +232,8 @@ $omaConfigs | Select-Object -Property displayName,description,omauri,value | Exp
 # SIG # Begin signature block
 # MIIWYAYJKoZIhvcNAQcCoIIWUTCCFk0CAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUwdFfrI8cDv4j+qR72XiVcXdc
-# kmWgghBKMIIE3DCCA8SgAwIBAgIRAP5n5PFaJOPGDVR8oCDCdnAwDQYJKoZIhvcN
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUjZqP0P6OHQzRwqF9MsIr1q12
+# sTegghBKMIIE3DCCA8SgAwIBAgIRAP5n5PFaJOPGDVR8oCDCdnAwDQYJKoZIhvcN
 # AQELBQAwfjELMAkGA1UEBhMCUEwxIjAgBgNVBAoTGVVuaXpldG8gVGVjaG5vbG9n
 # aWVzIFMuQS4xJzAlBgNVBAsTHkNlcnR1bSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0
 # eTEiMCAGA1UEAxMZQ2VydHVtIFRydXN0ZWQgTmV0d29yayBDQTAeFw0xNjAzMDgx
@@ -316,29 +325,29 @@ $omaConfigs | Select-Object -Property displayName,description,omauri,value | Exp
 # IExpbWl0ZWQxIzAhBgNVBAMTGkNPTU9ETyBSU0EgQ29kZSBTaWduaW5nIENBAhEA
 # 1COFaExESSMmfunez9AKZDAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAig
 # AoAAoQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgEL
-# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQU5Cs1jEAF7aC8c2P3HDBM
-# oMyvjogwDQYJKoZIhvcNAQEBBQAEggEAMrjQJnU7y8JPogrLuYoIahW5rHlGg5PQ
-# /tODsHlin7+i90ctbxJ4c3SlE0GOFvrxm7knDgI+c0ShfFK0MJBYlchhfMLUZ0kA
-# f/AI5w13WiR/BmEbWu+T9ju0sBUbuVz1IjiEJS2uJxtoQ3MofJdgo9xOHEynOdsr
-# iqXCnZrZX3KepC3to00aWzLs3WZRY/t0rBHrrdLz/6hCrjYW+1qhlBGjvkl9aGA9
-# IIp4SLef8humxpHjtuBuV8hXAqC4d2zSMapZpjFNOxjZwpB6glM8U7mzXx8NxzZG
-# jmPtq2XMRFpqqoWTMQcYPVwf3aI1djjR4Gz+dTK6LsFqeE59+gG8l6GCA0gwggNE
+# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUBE0wojUlp1u1ZtNVPJoh
+# 1932c0IwDQYJKoZIhvcNAQEBBQAEggEAorvBYFV2QKEqTrbaaMvOpUcfMByx+i95
+# ms/ApoYv214xDA/Tp9d6wLD8exQPkSMBSxbluPETeoXIt3oIe3TlOjODUIUx09PB
+# aYXyQ2+fRH+2GEtwgeUYcb13iHw71uwZdXlW74tAeYnT4EjgrYMInRKv8oyuRNuG
+# 7qjz3j57GWgfkNipfCUsv40RJSB/tYoVsZSu2m4afR8LNNADVi8e+5PWCofLRXHg
+# PCN7FLbTF2ia5Nw+AEy+ZlsvvXYgl8YLavcNWrbnZb0on4in2wDmDRmyS1BXYZ3V
+# SVmX2E1SAYNBBYobBsopAJsIs7iA1AQ/q2RI8pRp7kfSA7MG3U9jB6GCA0gwggNE
 # BgkqhkiG9w0BCQYxggM1MIIDMQIBATCBkzB+MQswCQYDVQQGEwJQTDEiMCAGA1UE
 # ChMZVW5pemV0byBUZWNobm9sb2dpZXMgUy5BLjEnMCUGA1UECxMeQ2VydHVtIENl
 # cnRpZmljYXRpb24gQXV0aG9yaXR5MSIwIAYDVQQDExlDZXJ0dW0gVHJ1c3RlZCBO
 # ZXR3b3JrIENBAhEA/mfk8Vok48YNVHygIMJ2cDANBglghkgBZQMEAgEFAKCCAXIw
 # GgYJKoZIhvcNAQkDMQ0GCyqGSIb3DQEJEAEEMBwGCSqGSIb3DQEJBTEPFw0yMTAz
-# MjAxNjIyMTNaMC8GCSqGSIb3DQEJBDEiBCB/TUJiC4z+9c3S8GfG68wPfY3KdM56
-# e/S4nffhf1khSDA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCDZyqvDIltwMM24PjhG
+# MjIxNDM5MDFaMC8GCSqGSIb3DQEJBDEiBCDrTmF9ojq2jf1IlI4Xxr/e8i1e2I5d
+# LVo+X3vAdFJ3DTA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCDZyqvDIltwMM24PjhG
 # 42kcFO15CxdkzhtPBDFXiZxcWDCBywYLKoZIhvcNAQkQAgwxgbswgbgwgbUwgbIE
 # FE+NTEgGSUJq74uG1NX8eTLnFC2FMIGZMIGDpIGAMH4xCzAJBgNVBAYTAlBMMSIw
 # IAYDVQQKExlVbml6ZXRvIFRlY2hub2xvZ2llcyBTLkEuMScwJQYDVQQLEx5DZXJ0
 # dW0gQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkxIjAgBgNVBAMTGUNlcnR1bSBUcnVz
 # dGVkIE5ldHdvcmsgQ0ECEQD+Z+TxWiTjxg1UfKAgwnZwMA0GCSqGSIb3DQEBAQUA
-# BIIBAExjiH/egNc06Lzlm6Nyd781oCPf3tsqLl/hq1+wsn6F7YKAkEa5bltmZgIK
-# BQDKXl5aBwL560GEtax7LfX8DhgaEGuPasXGXsdXz9QMTMDIM8kNAVDwV8N096T8
-# 1rkJqxdZuZZLvRz+yZLPOlZ1FExwwTu2CQ3LEV6AmMQTvzaNQC/KylM1ztJkqj7l
-# 7rIwmNg4/FHGDg+mil2v/hI5YJLLHUtLXzvzFpErss0xRpR0Z3+TxgKyeQWGYpnq
-# VG2LGYchpUcnL570JLNoy5jxHEAacFcoIFT9BYN1C2Lc4KRuAJUyc4sT8FcdjAPO
-# k5dr/0p5wJZqHn188XbLO0I0Z34=
+# BIIBAG+6I53MFXnqcW5pv6PsHUV2RbTOnzCXJrsj09Vv2KchxUE82cjjyWgFuyJ7
+# /yIm+WrWOKv0jDfmnWx87C0f8EepN1J8gWHe+XyaXAUvgiFYy3/9C0xR2k16DTPZ
+# f1Rx8HhI6jFUowLAwgmdhwBvibXpFTefaqmRpVLgH0itq8z+/bZOLuGg+epXAmkX
+# JO98fX3pdrI2oVdWZ6Lcy7ugXyoLinjWBQJ7elzX96RAaGgVUg7ljsltHKz980gf
+# M0xudJ0QcVRH+Ah/XWP7S/g6jwf4C/QzTlL15q1Lu1ll329PHHmQHn/t5gyMcc+x
+# VnNe8LBo3wlJsINpoSpDyhSlSwU=
 # SIG # End signature block
