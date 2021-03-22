@@ -23,3 +23,6 @@ So there are 5 steps:
 3. Assign the created configuration profile from intune.
 4. The configuration profile gets translated into registry settings with a technique called ADMX Ingestion.
 5. The PolicyApplicator Agent translates the registry settings into the target configuration file.
+
+## Demo
+Checkout this video on Youtube: [PolicyApplicator Demo](https://www.youtube.com/watch?v=M_W8YJvuZQ4)
