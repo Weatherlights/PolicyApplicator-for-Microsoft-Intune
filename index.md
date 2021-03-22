@@ -1,4 +1,4 @@
-## About PolicyApplicator
+## Manage (nearly) all 3rd Party Apps with OMA-DM
 
 Welcome to the PolicyApplicator to Microsoft Intune, the 360 degree configuration experience for 3rd party applications in Intune.
 
