@@ -20,5 +20,6 @@ Configure 3rd party applications using OMA-DM by converting your existing config
 ### Check out the Demo!
 
 Check out this demonstration where we configure the VLC media player vlcrc configuration by capturing a reference configuration:
-
-[![Demo on Youtube](http://img.youtube.com/vi/M_W8YJvuZQ4/0.jpg)](http://www.youtube.com/watch?v=M_W8YJvuZQ4)
+<p align="center">
+ <a href="http://www.youtube.com/watch?v=M_W8YJvuZQ4"><img src="http://img.youtube.com/vi/M_W8YJvuZQ4/0.jpg" alt="Demo on Youtube" /></a>
+</p>
