@@ -2,7 +2,9 @@
 
 Welcome to the PolicyApplicator to Microsoft Intune, the 360 degree configuration experience for 3rd party applications in Intune.
 
-Configure 3rd party applications using OMA-DM by converting your existing configuration in a ready to use Intune configuration profile. The PolicyApplicator can convert ini-, xml- and listfiles without any hustle.
+Configure 3rd party applications using OMA-DM by converting your existing configuration in a ready to use Intune configuration profile. The PolicyApplicator can convert ini-, xml- and list files without any hustle.
+
+Currently the project is in a very early stage and even though the scripts and the agent should work there is still code to optimize, bugs to find and documentation to be written. For now the best way to get started is to check the <a href="http://www.youtube.com/watch?v=M_W8YJvuZQ4">Demo</a>.
 
 ### Key Features
 
@@ -23,3 +25,7 @@ Check out this demonstration where we configure the VLC media player vlcrc confi
 <p align="center">
  <a href="http://www.youtube.com/watch?v=M_W8YJvuZQ4"><img src="http://img.youtube.com/vi/M_W8YJvuZQ4/0.jpg" alt="Demo on Youtube" /></a>
 </p>
+
+### Want to try out yourself?
+
+You can find the latest release <a href="https://github.com/Weatherlights/PolicyApplicator-for-Microsoft-Intune/releases">here</a>.
