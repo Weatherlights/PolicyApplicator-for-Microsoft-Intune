@@ -7,14 +7,17 @@
           
     .Notes  
         Author        : Hauke Goetze (hauke@hauke.us)
-        Version        : 1.0 - 2021/03/19 - Initial release  
-          
+        Version       : 1.0 - 2021/03/19 - Initial release  
+                        1.1 - 2021/03/22 - Added switch to forcefully prompt for AdminConsent.
           
     .Parameter FilePath  
         The path to the csv file you would like to upload to intune. 
           
     .Parameter PolicyName  
         The name of the configuration profile created in intune.
+
+    .Parameter AdminConsent  
+        Will enforce an administrative consent for the Microsoft Intune PowerShell app.
   
     .Example  
         .\Invoke-CSVToIntuneUpload.ps1 -FilePath "c:\myIntuneReadyConfig.csv" -PolicyName "MyConfig Windows 10 custom configuration profile"
@@ -27,14 +30,19 @@ param(
     [ValidateScript({Test-Path $_})]  
     [Parameter(ValueFromPipeline=$True,Mandatory=$True)]  
     [string]$FilePath,
-    [Parameter(Mandatory=$True)][string]$PolicyName
+    [Parameter(Mandatory=$True)][string]$PolicyName,
+    [Parameter][switch]$AdminConsent
 )
 
 $AppDir = $MyInvocation.MyCommand.Path
 
 Import-Module "$AppDir\..\IntuneGraph\Microsoft.Graph.Intune.psd1"
 
-Connect-MSGraph -AdminConsent
+if ( $AdminConsent ) {
+    Connect-MSGraph -AdminConsent
+} else {
+    Connect-MSGraph
+}
 
 ## Get the CSV File back in
 $policiesFromCSV = Import-Csv -Path $FilePath
@@ -56,8 +64,8 @@ New-IntuneDeviceConfigurationPolicy -displayName $PolicyName -ODataType "#micros
 # SIG # Begin signature block
 # MIIWYAYJKoZIhvcNAQcCoIIWUTCCFk0CAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU3TahyN4dxUsGRSPtaSr+8VUv
-# ixSgghBKMIIE3DCCA8SgAwIBAgIRAP5n5PFaJOPGDVR8oCDCdnAwDQYJKoZIhvcN
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUAudlUYyV2AxkHM/cbncwefyt
+# s6ugghBKMIIE3DCCA8SgAwIBAgIRAP5n5PFaJOPGDVR8oCDCdnAwDQYJKoZIhvcN
 # AQELBQAwfjELMAkGA1UEBhMCUEwxIjAgBgNVBAoTGVVuaXpldG8gVGVjaG5vbG9n
 # aWVzIFMuQS4xJzAlBgNVBAsTHkNlcnR1bSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0
 # eTEiMCAGA1UEAxMZQ2VydHVtIFRydXN0ZWQgTmV0d29yayBDQTAeFw0xNjAzMDgx
@@ -149,29 +157,29 @@ New-IntuneDeviceConfigurationPolicy -displayName $PolicyName -ODataType "#micros
 # IExpbWl0ZWQxIzAhBgNVBAMTGkNPTU9ETyBSU0EgQ29kZSBTaWduaW5nIENBAhEA
 # 1COFaExESSMmfunez9AKZDAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAig
 # AoAAoQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgEL
-# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQU2CpuYjMoj3WGvPk1F06r
-# Sx/x14kwDQYJKoZIhvcNAQEBBQAEggEAUMxNSXIgt/ANGhIadHO2Mq2V5pLcgjGh
-# a+t1WEGAWYcwEGUhlrhgOxrZfcYhiCX9TK30kMl2upEQLwVPvyyoVlbjmatunnmw
-# TrSc7EmCNAZdd1Bi+4KHnK8imzqL4Vcre81tM5FW6zGy6IB4S/KgLpw17oNsAzYD
-# hclSYkuHy+ThNkreIn5durCY3rd3HrnnSaB5K0ioza8GuTbhTISiG1zL5e7Vu+G+
-# s+/RfuN8sQKoR7xz+eJgI3IVwL+09ixzTjbbCGlCvdR2LVcF0N0W3Z6l7y+NMnBn
-# AkkGxaUGb81PuL/1W8B2/wkkwHAGalMOD4Ts3P0CD7IOAk300WvfnKGCA0gwggNE
+# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUleWYiwnBfK1ya3ko4spv
+# hpCahD4wDQYJKoZIhvcNAQEBBQAEggEAk4l+puzx0LyYhck9H2c654gf+jI3UPgv
+# Z6XrslmXzQqtXr9tzzX097ix0eop3cN0+5DJIZ7OkfcE2lrmHGokhG9hl2w7xmOP
+# JYUEDlM5GmRiTxxkO0/acepykWKmoNIA1fmfvnHpo8Hl1euD5nZvYNa1mgRTcdIG
+# 377Tw5dl22AUixifSS1UPT8j+w+GquXr5nxJst8oCKoNqtY2cNb7rmz2Tk2InBie
+# 2Eyr0NGYlPRjvrEULN6couLsgmSfouvT+jQK3OqT21872hjHIu6ckuv7LQHCzv36
+# IdjT+jFkbSrTJiQ4jQzWjpgDU+uUvVPN9pJoj1PJ9I+PKuDnr9syBKGCA0gwggNE
 # BgkqhkiG9w0BCQYxggM1MIIDMQIBATCBkzB+MQswCQYDVQQGEwJQTDEiMCAGA1UE
 # ChMZVW5pemV0byBUZWNobm9sb2dpZXMgUy5BLjEnMCUGA1UECxMeQ2VydHVtIENl
 # cnRpZmljYXRpb24gQXV0aG9yaXR5MSIwIAYDVQQDExlDZXJ0dW0gVHJ1c3RlZCBO
 # ZXR3b3JrIENBAhEA/mfk8Vok48YNVHygIMJ2cDANBglghkgBZQMEAgEFAKCCAXIw
 # GgYJKoZIhvcNAQkDMQ0GCyqGSIb3DQEJEAEEMBwGCSqGSIb3DQEJBTEPFw0yMTAz
-# MjAxNjIyMTRaMC8GCSqGSIb3DQEJBDEiBCCVSeJ0M81IZCPDde1HL/dkveTgx1id
-# bq1qfD1UaOXnbjA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCDZyqvDIltwMM24PjhG
+# MjIyMDUwMDJaMC8GCSqGSIb3DQEJBDEiBCDZkxLAys4qz4JGGwNRFZi4r8XzX9y2
+# 0MKFJdoM22eHEzA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCDZyqvDIltwMM24PjhG
 # 42kcFO15CxdkzhtPBDFXiZxcWDCBywYLKoZIhvcNAQkQAgwxgbswgbgwgbUwgbIE
 # FE+NTEgGSUJq74uG1NX8eTLnFC2FMIGZMIGDpIGAMH4xCzAJBgNVBAYTAlBMMSIw
 # IAYDVQQKExlVbml6ZXRvIFRlY2hub2xvZ2llcyBTLkEuMScwJQYDVQQLEx5DZXJ0
 # dW0gQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkxIjAgBgNVBAMTGUNlcnR1bSBUcnVz
 # dGVkIE5ldHdvcmsgQ0ECEQD+Z+TxWiTjxg1UfKAgwnZwMA0GCSqGSIb3DQEBAQUA
-# BIIBACbX/wrzqHXI6VzDmvrLQk610aGGNlgnvbsOKuHI1U4hQ9L+ycXFs8sqzSn5
-# C+kLqr4ZpGjSPW5r+SjhCUTgdh9tk/IcuLsms/1C9KQkLnCAv6GKffMU2eDOBFBY
-# Xi4HFfdOw+lB1oa4znxrbbYcU/ZLLm68OGmCgYh+dF2v0lP1KnaZkovOpXdybtMV
-# 1azLQukQHtVZx5sK3lNJ917kBNh6Av8qn/IUallxi1zHBAOIIAfs+d/zH+RJ9DIY
-# qFGgntYlaW8l2qS1agTLGBvos1jn1jtkWLBYA9nRvsAF3DnEfuLnLXsLZxYsbvyc
-# jn7xFyGamER9RMKaD07xJixQxBs=
+# BIIBADP2p/FObyjWV7pMhq7jPntPJIgxou4Cc+hHrKF1vSF+KlOgAmvqg+DfpcPx
+# FyOBttUxP8P/cz94oNC116J2XNIUjMklX9VSuW6nlfshz09zGxeuyltUEoQlFxMy
+# LWdU0aUNFfnpz9xGfhUoUVFJ9bVMDM+cjzsoEP67fBRHc/3xCFQYzsMrdwri5jHX
+# vG9b07tVJA7L7t88fxC7wml1O/ol5hdzBxrhxaeCLT5VVCLTQIaSB0P5+zyXd6fV
+# OwBBfmWc1SwzlVAk7fX37WTM+kIOCOijc2mrmmhzcZBUlWMfAVOltGrRZK9n9QF6
+# j/r/NYdmHAIwwhMKBIAyv5u3uHo=
 # SIG # End signature block
