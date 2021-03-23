@@ -9,6 +9,7 @@ Currently the project is in a very early stage and even though the scripts and t
 ### Key Features
 
 * Creates an ADMX policy template and all corresponding OMA-URIs from any ini-, xml- or list file.
+* <strong>New:</strong> You can now convert registry structures to ADMX policy templates and OMA-URI sets that work without the PolicyApplicator Agent <em>(Currently limited to Strings, Dwords and MultiSZ values)</em>.
 * Upload your created files to the intune console.
 * Supports different operations:
   * Create: Create settings that do not exist (Ideal for recommended settings)
