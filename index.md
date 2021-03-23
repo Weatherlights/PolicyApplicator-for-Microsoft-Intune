@@ -18,6 +18,7 @@ Currently the project is in a very early stage and even though the scripts and t
 * As a pro you can modify the configurations:
   * Use XPath to build and modify XML
   * Use Sections and Keys to modify ini files 
+* Ready to use <a href="https://github.com/Weatherlights/PolicyApplicator-for-Microsoft-Intune/tree/main/Binaries/Ready%20to%20use%20Agent">MSI-/EXE-Agent</a> that you deploy using LoB App or Win32
 
 ### Check out the Demo!
 
