@@ -58,7 +58,9 @@ $cleanAppPolicyName = ConvertTo-ADMXCompatibleName $AppPolicyName
 
 
 Write-Host "Reading Registry $RegistryPath recursivly..." -NoNewline;
-$registryData = Get-ChildItem -Path $RegistryPath -Recurse
+$registryData = @();
+$registryData += Get-ChildItem -Path $RegistryPath -Recurse
+$registryData += Get-Item -Path $RegistryPath
 Write-Host "done!";
 $categories = '<category name="'+$cleanAppPolicyName+'" displayName="$(string.Nothing)" />';
 $policies = '';
@@ -68,7 +70,7 @@ ForEach ( $registryKey in $registryData ) {
 
     $registryKeyPath = $registryKey.PSPath -replace "^Microsoft\.PowerShell\.Core\\Registry::", "";
 
-    $cleanRegistryKeyPath = $registryKeyPath -replace "(^HKEY_LOCAL_MACHINE\\|^HKEY_CURRENT_USER\\)", "";
+    $cleanRegistryKeyPath = $registryKeyPath -replace "(^HKEY_LOCAL_MACHINE\\|^HKEY_CURRENT_USER)", "";
 
     $class = ""
     if ( $registryKeyPath -match "^HKEY_CURRENT_USER" ) {
@@ -83,7 +85,6 @@ ForEach ( $registryKey in $registryData ) {
         ForEach ( $valueName in $valueNames ) {
             $value = $registryKey.GetValue($valueName);
             $datatype = $registryKey.GetValueKind($valueName);
-
             Write-Host "Processing $registryKeyPath\$valueName..." -NoNewline;
             $policyname = ($cleanRegistryKeyPath -replace "\\", "-") + "-$valueName";
             if (
@@ -158,8 +159,8 @@ Write-Host "done!";
 # SIG # Begin signature block
 # MIIWYAYJKoZIhvcNAQcCoIIWUTCCFk0CAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU7l/v53fLINSK7854FucdogfM
-# LDGgghBKMIIE3DCCA8SgAwIBAgIRAP5n5PFaJOPGDVR8oCDCdnAwDQYJKoZIhvcN
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU/zMfX5pQrMT5c+t2cTRHBvIC
+# nxmgghBKMIIE3DCCA8SgAwIBAgIRAP5n5PFaJOPGDVR8oCDCdnAwDQYJKoZIhvcN
 # AQELBQAwfjELMAkGA1UEBhMCUEwxIjAgBgNVBAoTGVVuaXpldG8gVGVjaG5vbG9n
 # aWVzIFMuQS4xJzAlBgNVBAsTHkNlcnR1bSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0
 # eTEiMCAGA1UEAxMZQ2VydHVtIFRydXN0ZWQgTmV0d29yayBDQTAeFw0xNjAzMDgx
@@ -251,29 +252,29 @@ Write-Host "done!";
 # IExpbWl0ZWQxIzAhBgNVBAMTGkNPTU9ETyBSU0EgQ29kZSBTaWduaW5nIENBAhEA
 # 1COFaExESSMmfunez9AKZDAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAig
 # AoAAoQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgEL
-# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUBRAVz7z78JK/dn9Hn9iu
-# Y4FZ0qswDQYJKoZIhvcNAQEBBQAEggEAP8KK0vq/YZ/wfg+qrlynzDz8kDbv4ihW
-# 3/mGgallDF/ANnCaNA5nCCz6HwX7rsREOMxtLLip4W7LOvy/CrzBz7hiGTyG9XJq
-# gs3B6wFi5NaLtKlU37UZbQje/WO6oZDGeavMhUK9Qa2N51wzPkOoZkptWAeDbi82
-# a8SzxVLM/vnG0nZfJS62N/eUCH61035vdmzQOB5/oROr77HM7+aaxasOHgb8bva+
-# OoFydspEmtkVG7F0SrE5NR+eXUEM5fO8XVHMmNf7OKPURTRsQBB5AHlQdpT4tQiW
-# wDbMedfGTW8yW1ENiT7Z5csNxMOr+FwEzjxGuswEOs6uRO7BrIvtv6GCA0gwggNE
+# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQU8IiASMQKnk528yR5JulQ
+# yD8K7mYwDQYJKoZIhvcNAQEBBQAEggEAflZvlFsO+o7ODEQm3M0r+XuGhEu99I95
+# epFhVkh/lRXl6mlGF12RzcuDYmj146NPtohrE+X+scP0APn2md1dLHFImree378n
+# Sbi1TuwxxNYP3KPsMeJX+xFFNSBvTNkMxBRQ74ViZ2YFGWnQVt1+pj6hr1iR/bTf
+# x7BDPH4KxL2JQwkxoDhDH9IXV4/Cl/cJgnIED3zWOnTSynFWRFfWZXqNi4fSrtb9
+# 9qe5hQEm94BfgFbxfv40jN6Ac52fZumKLeSfHNRLFgbpwMVmXMggvWNl2TVnQK5L
+# 3wV0jFwQUSg3GPCH4DnvHOXmX5ttg/jvPFGRS+x55CFav28rmQI83KGCA0gwggNE
 # BgkqhkiG9w0BCQYxggM1MIIDMQIBATCBkzB+MQswCQYDVQQGEwJQTDEiMCAGA1UE
 # ChMZVW5pemV0byBUZWNobm9sb2dpZXMgUy5BLjEnMCUGA1UECxMeQ2VydHVtIENl
 # cnRpZmljYXRpb24gQXV0aG9yaXR5MSIwIAYDVQQDExlDZXJ0dW0gVHJ1c3RlZCBO
 # ZXR3b3JrIENBAhEA/mfk8Vok48YNVHygIMJ2cDANBglghkgBZQMEAgEFAKCCAXIw
 # GgYJKoZIhvcNAQkDMQ0GCyqGSIb3DQEJEAEEMBwGCSqGSIb3DQEJBTEPFw0yMTAz
-# MjUwODUwMTdaMC8GCSqGSIb3DQEJBDEiBCC3sSDxfMrCw1mJO529pY8ivAJ4d43J
-# xx38iGrPhbfysjA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCDZyqvDIltwMM24PjhG
+# MjQxOTM1MDRaMC8GCSqGSIb3DQEJBDEiBCBtiR4QcoYTiBHhtHMBH+AyJcJag4Tf
+# EyPUb+TiCl0C5TA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCDZyqvDIltwMM24PjhG
 # 42kcFO15CxdkzhtPBDFXiZxcWDCBywYLKoZIhvcNAQkQAgwxgbswgbgwgbUwgbIE
 # FE+NTEgGSUJq74uG1NX8eTLnFC2FMIGZMIGDpIGAMH4xCzAJBgNVBAYTAlBMMSIw
 # IAYDVQQKExlVbml6ZXRvIFRlY2hub2xvZ2llcyBTLkEuMScwJQYDVQQLEx5DZXJ0
 # dW0gQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkxIjAgBgNVBAMTGUNlcnR1bSBUcnVz
 # dGVkIE5ldHdvcmsgQ0ECEQD+Z+TxWiTjxg1UfKAgwnZwMA0GCSqGSIb3DQEBAQUA
-# BIIBADuCca2VD/1/3Fyw6lcf1GbePrZpVo3vIQLJW54yEqu3KLIWRjQjUJRWb8G/
-# 8tbvinuZGPJA8xv6OtZ690x1sPZrHwyWN6PGkZ670NeOsLPU18qs+/NGWplIVnQX
-# rdtOIjRMNl1jSmJjGlV6Wl7Q9UY0FQZJZfju69AMhOCHBG6tAlWvHlj35nQsopyg
-# 1/Cmj9pEIMukocWhRvolTrK69GxuiASNG2uQnMb00wzNVBbD+PbArMX5Iujb+SuA
-# GDxiReG/h4j5ep0zjOjRjWF5Wmn1Em9z8eYQr5auCaWpzu4toQekOwS+as3YhQvU
-# PY84Hn0ELKlkyQAniHgTw+WL/dw=
+# BIIBAKvkjDy8If7PEGKgU3qtJK51xIZXaUs+7MSf+MmIgwq7+4NU8QlYAj1AqY7E
+# ltf0QsnK1hToLbxLj1/G5AoN2Iiia72I4IVPybp6qCoINZRIZFR+v0UHNUfXkchG
+# bx5PubkysBz1dxRfVAtHmfO14o6dGRL72YNzkRbZN261riSTRMx7dBTihGFobJB1
+# 3eIMnuLQtmPwf9tCTkLlUjwjeWoyAxgIwdM8yLC5+NUCmM7xiZ+gEIV8KIxJsafM
+# G0/Glaom6W2RCxt+HKosyaXI91h2u63eRAf4gCT8x84Vp9FowXH5dfWRz98Oapcr
+# 63jNP+Px6Piq5uQwoEUQqE5wjtg=
 # SIG # End signature block
