@@ -73,19 +73,20 @@ $xpathsToConfigure = @();
 
 ForEach ( $xmlObject in $outerXmlObjects ) {
     $node = $xmlObject.Node;
+    if ( $node.Name -ne "#comment" ) {
+        $xpath = Get-NodeXPath -node $node
+        $namespace = Get-NodeNamespaces -node $node
+        $value = $node.Value;
 
-    $xpath = Get-NodeXPath -node $node
-    $namespace = Get-NodeNamespaces -node $node
-    $value = $node.Value;
+        $xpathToConfigure = @{
+            "Xpath" = $Xpath;
+            "Value" = $Value;
+            "Namespace" = $namespace;
+            "Operation" = "$Operation";
+        };
 
-    $xpathToConfigure = @{
-        "Xpath" = $Xpath;
-        "Value" = $Value;
-        "Namespace" = $namespace;
-        "Operation" = "$Operation";
-    };
-
-    $xpathsToConfigure += $xpathToConfigure;
+        $xpathsToConfigure += $xpathToConfigure;
+    }
 }
 
 
@@ -232,8 +233,8 @@ $omaConfigs | Select-Object -Property displayName,description,omauri,value | Exp
 # SIG # Begin signature block
 # MIIWYAYJKoZIhvcNAQcCoIIWUTCCFk0CAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUjZqP0P6OHQzRwqF9MsIr1q12
-# sTegghBKMIIE3DCCA8SgAwIBAgIRAP5n5PFaJOPGDVR8oCDCdnAwDQYJKoZIhvcN
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUnx5Taxgx1MgGXQwcOZmsTwOj
+# q8OgghBKMIIE3DCCA8SgAwIBAgIRAP5n5PFaJOPGDVR8oCDCdnAwDQYJKoZIhvcN
 # AQELBQAwfjELMAkGA1UEBhMCUEwxIjAgBgNVBAoTGVVuaXpldG8gVGVjaG5vbG9n
 # aWVzIFMuQS4xJzAlBgNVBAsTHkNlcnR1bSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0
 # eTEiMCAGA1UEAxMZQ2VydHVtIFRydXN0ZWQgTmV0d29yayBDQTAeFw0xNjAzMDgx
@@ -325,29 +326,29 @@ $omaConfigs | Select-Object -Property displayName,description,omauri,value | Exp
 # IExpbWl0ZWQxIzAhBgNVBAMTGkNPTU9ETyBSU0EgQ29kZSBTaWduaW5nIENBAhEA
 # 1COFaExESSMmfunez9AKZDAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAig
 # AoAAoQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgEL
-# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUBE0wojUlp1u1ZtNVPJoh
-# 1932c0IwDQYJKoZIhvcNAQEBBQAEggEAorvBYFV2QKEqTrbaaMvOpUcfMByx+i95
-# ms/ApoYv214xDA/Tp9d6wLD8exQPkSMBSxbluPETeoXIt3oIe3TlOjODUIUx09PB
-# aYXyQ2+fRH+2GEtwgeUYcb13iHw71uwZdXlW74tAeYnT4EjgrYMInRKv8oyuRNuG
-# 7qjz3j57GWgfkNipfCUsv40RJSB/tYoVsZSu2m4afR8LNNADVi8e+5PWCofLRXHg
-# PCN7FLbTF2ia5Nw+AEy+ZlsvvXYgl8YLavcNWrbnZb0on4in2wDmDRmyS1BXYZ3V
-# SVmX2E1SAYNBBYobBsopAJsIs7iA1AQ/q2RI8pRp7kfSA7MG3U9jB6GCA0gwggNE
+# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQU7kSvwVmjxHC1Ttk0cBMj
+# tSq1J7IwDQYJKoZIhvcNAQEBBQAEggEAj7xuEMrGax55X7aFv2z7D6/0EfFTv4Fk
+# TlijgkluoJ/uiIl7GmQFCTl92NjGhojDTyxN8pPKNj1MsCuFrogJSXv0CO7FT9E6
+# paUxyTlrXHnhHpYBV9RbIVEi3NTfKlDP3RRq8ebubPNyMOyfDvBfeTKX+y7jZ+8R
+# d08OkG0EDAHIBZlvoHgVaBQjjuM36ap1r2ZUjf0RkLjmhpE1ewci0fy1QoxCCGnU
+# UBLQ30vS2MRsWIzb4y1idtuo7qC1jJi1+ARTHIEC77xNabWi18/V1Pd5sKHRGlN6
+# xpnqMaJTxMdZXGADcGHmqAcSvpKrwKN2wZcNdJf8rtCS9HGJarCF9aGCA0gwggNE
 # BgkqhkiG9w0BCQYxggM1MIIDMQIBATCBkzB+MQswCQYDVQQGEwJQTDEiMCAGA1UE
 # ChMZVW5pemV0byBUZWNobm9sb2dpZXMgUy5BLjEnMCUGA1UECxMeQ2VydHVtIENl
 # cnRpZmljYXRpb24gQXV0aG9yaXR5MSIwIAYDVQQDExlDZXJ0dW0gVHJ1c3RlZCBO
 # ZXR3b3JrIENBAhEA/mfk8Vok48YNVHygIMJ2cDANBglghkgBZQMEAgEFAKCCAXIw
 # GgYJKoZIhvcNAQkDMQ0GCyqGSIb3DQEJEAEEMBwGCSqGSIb3DQEJBTEPFw0yMTAz
-# MjIxNDM5MDFaMC8GCSqGSIb3DQEJBDEiBCDrTmF9ojq2jf1IlI4Xxr/e8i1e2I5d
-# LVo+X3vAdFJ3DTA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCDZyqvDIltwMM24PjhG
+# MjUyMDQxNTNaMC8GCSqGSIb3DQEJBDEiBCDAL28ShtIygIskeTeQlprvWLHu1HnP
+# cW1LSnZmMTB3MDA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCDZyqvDIltwMM24PjhG
 # 42kcFO15CxdkzhtPBDFXiZxcWDCBywYLKoZIhvcNAQkQAgwxgbswgbgwgbUwgbIE
 # FE+NTEgGSUJq74uG1NX8eTLnFC2FMIGZMIGDpIGAMH4xCzAJBgNVBAYTAlBMMSIw
 # IAYDVQQKExlVbml6ZXRvIFRlY2hub2xvZ2llcyBTLkEuMScwJQYDVQQLEx5DZXJ0
 # dW0gQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkxIjAgBgNVBAMTGUNlcnR1bSBUcnVz
 # dGVkIE5ldHdvcmsgQ0ECEQD+Z+TxWiTjxg1UfKAgwnZwMA0GCSqGSIb3DQEBAQUA
-# BIIBAG+6I53MFXnqcW5pv6PsHUV2RbTOnzCXJrsj09Vv2KchxUE82cjjyWgFuyJ7
-# /yIm+WrWOKv0jDfmnWx87C0f8EepN1J8gWHe+XyaXAUvgiFYy3/9C0xR2k16DTPZ
-# f1Rx8HhI6jFUowLAwgmdhwBvibXpFTefaqmRpVLgH0itq8z+/bZOLuGg+epXAmkX
-# JO98fX3pdrI2oVdWZ6Lcy7ugXyoLinjWBQJ7elzX96RAaGgVUg7ljsltHKz980gf
-# M0xudJ0QcVRH+Ah/XWP7S/g6jwf4C/QzTlL15q1Lu1ll329PHHmQHn/t5gyMcc+x
-# VnNe8LBo3wlJsINpoSpDyhSlSwU=
+# BIIBAHMLQmlV8Bc0ibUJJGw/HEiWkZtYJdwA9lTE54Dx6B2OU8NzM+3Kjdl12mEl
+# HlY5im8uImnpA7iDLehVCd7kTw+SC2N7XbiPNKmOt1mEg9H0qSoIwEDJh0tXhkX8
+# IY7m9Aq1Do79JXEOr1AbeZtkhDlrrB9IXXybU0tFuhvQ4L/gzokIFPit8oPCRezx
+# I6p9uTyOj7ohgNotqOGVTJObZJ+XbJLewGJpFzaTJZzkMgYyOvhFAvuaJw2KOE9x
+# pQML3WryLd3d9XB7g3Z9D81VrLnBH3KObr3bd1N6isCnBWqgowJLQVbmjfMen2dn
+# 0/DPI95MUWAClj6b0YLRvontojE=
 # SIG # End signature block
