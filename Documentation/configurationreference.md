@@ -41,4 +41,16 @@ This allows you to configure how the PolicyApplicator will treat an element with
    * In case the configuration element does not match the policy it is reconfigured from the policy.
 
 #### namespace
-Here you can configure namespaces for the xpath. Each namespace can be configured like this:
+Here you can configure namespaces for the xpath. Each namespace can be specified by adding the prefix and the url of the namespace seperated by &amp;#xF000;.
+
+Example: prefix1&amp;#xF000;namespaceuri1&amp;#xF000;prefix2&amp;#xF000;namespaceuri2
+
+#### xpath
+Here you can specify the xpath that resolved the setting in your configuration file. You should not use complex xpath expressions.
+
+Good: /element1/element2/@attribute
+
+Bad: //@attribute
+
+#### value
+Enter your desired configuration value here.
