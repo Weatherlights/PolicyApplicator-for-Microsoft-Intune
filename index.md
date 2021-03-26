@@ -32,4 +32,4 @@ Check out this demonstration where we configure the VLC media player vlcrc confi
 
 You can find the latest release <a href="https://github.com/Weatherlights/PolicyApplicator-for-Microsoft-Intune/releases">here</a>.
 
-Also check out the documentation <a href="https://github.com/Weatherlights/PolicyApplicator-for-Microsoft-Intune/blob/33e51cd2d8f6e7bf6d9680e541b3a67db3cb0f01/Documentation/Readme.md">here</a>.
+Also check out the documentation <a href="https://github.com/Weatherlights/PolicyApplicator-for-Microsoft-Intune/wiki">here</a>.
