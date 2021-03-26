@@ -1,5 +1,32 @@
-﻿
-function Get-PolicyApplicatorConfiguration {
+﻿function Get-PolicyApplicatorConfiguration {
+   <#  
+    .Synopsis  
+        Builds a config object from the registry.
+          
+    .Description  
+        Gets the PolicyApplicator configuration from the registry and parses it into an object that later can be used to write into the specific files.
+          
+    .Notes  
+        Author        : Hauke Goetze
+      
+        Version        : 1.0 - 2021/03/22 - Started with this version table.        
+     
+          
+    .Inputs  
+        System.String  
+          
+    .Outputs  
+        System.Array
+          
+    .Parameter RegistryPath  
+        Specifies the path of the registry where the function should search for PolicyApplicator PolicySets.
+          
+    .Example  
+        $configs = Get-PolicyApplicatorConfiguration "HKLM:\Software\Policies\PolicyApplicator" 
+        -----------  
+        Description  
+        Searches in the registry key for PolicySets and stores them in the configs array.
+    #>  
 param(
         [ValidateNotNullOrEmpty()]  
         [ValidateScript({Test-Path $_})]  
@@ -13,7 +40,16 @@ forEach ( $registryKey in $registryKeys ) {
     if ( $registryKey.PSChildName.StartsWith("PolicySet:") ) {
 
         $FileType = $registryKey.GetValue("Mode")
-        $CreateFile = $registryKey.GetValue("CreateFile");
+        if ( $registryKey.GetValue("operation") ) {
+            $fileOperation = $registryKey.GetValue("operation");
+        } else {
+            if ( $registryKey.GetValue("CreateFile") ) {
+                $fileOperation = "create";
+            } else {
+                $fileOperation = "update";
+            }
+        }
+
         $FilePath = $registryKey.GetValue("Path");
         $Encoding = $registryKey.GetValue("Encoding");
 
@@ -99,7 +135,7 @@ forEach ( $registryKey in $registryKeys ) {
             }
         }
 
-        $fileConfig = @{ "FileType" = $FileType; "FilePath" = $FilePath; "CreateFile" = $CreateFile; "Encoding" = $Encoding; "Rules" = $rules }
+        $fileConfig = @{ "FileType" = $FileType; "FilePath" = $FilePath; "Operation" = $fileOperation; "Encoding" = $Encoding; "Rules" = $rules }
         if ( $FileType -ne "Disabled" ) {
             $config += $fileConfig
         }
@@ -110,8 +146,8 @@ forEach ( $registryKey in $registryKeys ) {
 # SIG # Begin signature block
 # MIIWYAYJKoZIhvcNAQcCoIIWUTCCFk0CAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUrbCnNE0sPSXev928jfK6yokT
-# fc2gghBKMIIE3DCCA8SgAwIBAgIRAP5n5PFaJOPGDVR8oCDCdnAwDQYJKoZIhvcN
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUTHqOGRZzC/EL2swcU6ugVhsx
+# 3U2gghBKMIIE3DCCA8SgAwIBAgIRAP5n5PFaJOPGDVR8oCDCdnAwDQYJKoZIhvcN
 # AQELBQAwfjELMAkGA1UEBhMCUEwxIjAgBgNVBAoTGVVuaXpldG8gVGVjaG5vbG9n
 # aWVzIFMuQS4xJzAlBgNVBAsTHkNlcnR1bSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0
 # eTEiMCAGA1UEAxMZQ2VydHVtIFRydXN0ZWQgTmV0d29yayBDQTAeFw0xNjAzMDgx
@@ -203,29 +239,29 @@ forEach ( $registryKey in $registryKeys ) {
 # IExpbWl0ZWQxIzAhBgNVBAMTGkNPTU9ETyBSU0EgQ29kZSBTaWduaW5nIENBAhEA
 # 1COFaExESSMmfunez9AKZDAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAig
 # AoAAoQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgEL
-# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUQP6MaqAxQGuNFGoRqMFe
-# 0R5wv/owDQYJKoZIhvcNAQEBBQAEggEAlxNTetXsBodeZ0MIr56BLeff6UGEoEpE
-# sCT+kNpGgfZXoBuX3Fsjx2g3F/5V+Ff+b+OuCHzTFWPNPy5omZ/0IoNZbqpQaf89
-# PtByPmcH+faTrixz81Ya/+LYYURAoREV/UEQzep+0usqPm5rsJVeeGK8IJmUnIF+
-# 1IgOGkRbACSKmb24PkLPQffspCgoqp3DrSxEOnN4dpyHh5qFFIIcIh4VMNxK5QNY
-# 4e1VRJAKIw+NyUAE3Z8Yf0ZYflj8+G3NhZhf+QaiYfiwevAgFgqKG8d2nbhHvblx
-# XmGO6rXtcB+IwpxzXdo665cxudQnoVS+HxLAk9CSiLbaBuTchWMZh6GCA0gwggNE
+# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUj1/hA8q7yHATsfqWhxex
+# T6e/lqkwDQYJKoZIhvcNAQEBBQAEggEAglEc+f8oyvH3cCvlhzRUvo+CkGcDIozy
+# /H9xG2GNfvADo8GBwBMiX6dQY+9PCynLNX6I2jtVZGIOgcI0rTL9PB5kEopCeHMu
+# f2ukSpjad88fBtENQydhbl/9zy2SGzoO+52GRtOhBkL1OD1pd5pEZWJfiNbq6uce
+# jPZ9WqXsEAFb6UZaKfuPIgyuVYMUSoI1C2PlYI7cwUOpk8j+vlVm8dTAT70rXE2f
+# 1dxG2dmjrkDlJ9mhnupgnrFYKuudiRJVV8LDlbuxbFBULyovu4Jis6RTada1JZyH
+# L/cwiGvzxzxwv38xGTocplo61E2IP9o1Z6IbnwrlbRglQZZ2AfuZGKGCA0gwggNE
 # BgkqhkiG9w0BCQYxggM1MIIDMQIBATCBkzB+MQswCQYDVQQGEwJQTDEiMCAGA1UE
 # ChMZVW5pemV0byBUZWNobm9sb2dpZXMgUy5BLjEnMCUGA1UECxMeQ2VydHVtIENl
 # cnRpZmljYXRpb24gQXV0aG9yaXR5MSIwIAYDVQQDExlDZXJ0dW0gVHJ1c3RlZCBO
 # ZXR3b3JrIENBAhEA/mfk8Vok48YNVHygIMJ2cDANBglghkgBZQMEAgEFAKCCAXIw
 # GgYJKoZIhvcNAQkDMQ0GCyqGSIb3DQEJEAEEMBwGCSqGSIb3DQEJBTEPFw0yMTAz
-# MjAxNjIyMDhaMC8GCSqGSIb3DQEJBDEiBCCeswbqR3Vl/quwHHbMNNGDmSqTBIvj
-# EafNpiXNMsF5FjA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCDZyqvDIltwMM24PjhG
+# MjYwOTM5MDBaMC8GCSqGSIb3DQEJBDEiBCALWoaNtHsvbMZW7JZ45DIt0s3whBdb
+# rW74trctXv/SRTA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCDZyqvDIltwMM24PjhG
 # 42kcFO15CxdkzhtPBDFXiZxcWDCBywYLKoZIhvcNAQkQAgwxgbswgbgwgbUwgbIE
 # FE+NTEgGSUJq74uG1NX8eTLnFC2FMIGZMIGDpIGAMH4xCzAJBgNVBAYTAlBMMSIw
 # IAYDVQQKExlVbml6ZXRvIFRlY2hub2xvZ2llcyBTLkEuMScwJQYDVQQLEx5DZXJ0
 # dW0gQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkxIjAgBgNVBAMTGUNlcnR1bSBUcnVz
 # dGVkIE5ldHdvcmsgQ0ECEQD+Z+TxWiTjxg1UfKAgwnZwMA0GCSqGSIb3DQEBAQUA
-# BIIBAE7hQAOqvlm2Q1lGYgzAKj12NOAqkIggrLPjIDHWAJHnOuxCM5KMAlDw9Egz
-# MAryOYSpLXP8yNPCy0lbKrhHNbb8JuWBj7pteMQfEnGOZoI9ZEVqTq+PHz1Y8TdZ
-# 1SSXiRHEA2s9mW8DKEZCiszvfOvAfLPgb8g6aweMlfLaGdFKSqdqppxASWWFxjcZ
-# ijXC1SYOioa+h7p9ky9sIp3NV0OrtgJh4WFHlcSOPx3P1n9UbsvRIghBRtwRPi1d
-# 5Wq/8cB3Nog1D4EXAgdEFvKezTKqWlxVABwDuff0lje7E+E/Tm9M2LWUksMGol6c
-# jO/mZIWppBWtO7iClG77AD2qYmg=
+# BIIBAHkKA77aRFML700IFyxoQ8rlsArP9T4Id+/5jsqlcyL6xlpVWwnCBiLhDoJh
+# /3hXF7aCJRDMO7eXOgIe7Vsd+CdJJJeCWEu5c6KUfs10l8DwcxhL2gVcRoSUhOrA
+# cFZRbArtCXQXdNPNFGZ9mzGCwURDygBA/X6KtArw5AUs6MFlgkqPZP+ivQzMbtKu
+# Bw8HpeE5kymXBltdvCMD91oZ3/mSH7taVB+nQ6tllFkBchtSKhASjdJzaA0QvnNW
+# 05GuLtit908RwEkni52mWqq+xfPywliJe4PFw9VWVyZ+tUJeDp4+Rwxcs/DyD0WZ
+# ZxiVMGTm1PBVX5NmaMva4LYTm60=
 # SIG # End signature block

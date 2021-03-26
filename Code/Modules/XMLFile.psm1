@@ -93,7 +93,7 @@ function Set-XmlNodeByXpath {
                     } elseif ( $nodeTag -match "\[([0-9]+)\]" ) {  # Create Sibling Element
                         $nodeTag = $node -replace "\[([0-9]+)\]";
                         [int]$numberofnode = $Matches[1]
-                        $currentNodeCount = $currentNode.Node.$nodeName.Count;
+                        $currentNodeCount = $currentNode.Node.$nodeTag.Count;
 
                         For ( $i = $currentNodeCount+1; $i -le $numberofnode; $i++ ) {
                             $newElement = $xml.CreateElement($nodeNamespacePrefix, $nodeTag, $nodeNamespaceURI);
@@ -162,7 +162,7 @@ param (
 
         [ValidateNotNullOrEmpty()][Parameter(Mandatory=$True)][System.Array]$Rules,
 
-        [bool]$CreateFile = $true
+        [ValidateSet("create","update","replace")][string]$Operation = "create"
 
 );
 
@@ -178,16 +178,24 @@ param (
                 $fileDoesNotExistYet = $true;
             }
 
-            if ( ($fileDoesNotExistYet -eq $false) -or ($CreateFile -eq $true) ) {
+            if ( ($fileDoesNotExistYet -eq $false) -or ($Operation -eq "create") -or ($Operation -eq "replace") ) {
                 ForEach ( $rule in $Rules ) {
                     if ( !(Test-XPathValueOnContent -Xml $Xml -XPath $rule.XPath -Value $rule.Value -Namespace $rule.Namespace) ) {
                         $Compliance = "Non-Compliant: Element Missmatch."
-                        Set-XmlNodeByXpath -Xml $Xml -Xpath $rule.XPath -value $rule.Value -Operation $rule.Operation -Namespace $rule.Namespace;
-                    
+                        if ($Operation -ne "replace") {
+                            Set-XmlNodeByXpath -Xml $Xml -Xpath $rule.XPath -value $rule.Value -Operation $rule.Operation -Namespace $rule.Namespace;
+                        }
                     }
                 }
-    
                 if ( ($Compliance -ne "Compliant") -and ($Action -eq "Remediate") ) {
+                    # If operation is replace the file should be recreated from scratch.
+                    if ($Operation -eq "replace") {
+                        [xml]$Xml = "";
+                        ForEach ( $rule in $Rules ) {
+                            Set-XmlNodeByXpath -Xml $Xml -Xpath $rule.XPath -value $rule.Value -Operation $rule.Operation -Namespace $rule.Namespace;
+                        }
+                    }
+
                     if ( !(Test-Path -Path "$Filepath\..") ) {
                         New-Item -Path $Filepath\.. -ItemType Directory
                     }
@@ -292,8 +300,8 @@ $tnode = Select-Xml -Xml $xxml -XPath "//node()[not(./node())]"
 # SIG # Begin signature block
 # MIIWYAYJKoZIhvcNAQcCoIIWUTCCFk0CAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUYgg2Tv5c+M+B7OMd/vvC6nPq
-# m4ygghBKMIIE3DCCA8SgAwIBAgIRAP5n5PFaJOPGDVR8oCDCdnAwDQYJKoZIhvcN
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUEvse1m6JMrSjfWST/ovVf+Qc
+# x++gghBKMIIE3DCCA8SgAwIBAgIRAP5n5PFaJOPGDVR8oCDCdnAwDQYJKoZIhvcN
 # AQELBQAwfjELMAkGA1UEBhMCUEwxIjAgBgNVBAoTGVVuaXpldG8gVGVjaG5vbG9n
 # aWVzIFMuQS4xJzAlBgNVBAsTHkNlcnR1bSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0
 # eTEiMCAGA1UEAxMZQ2VydHVtIFRydXN0ZWQgTmV0d29yayBDQTAeFw0xNjAzMDgx
@@ -385,29 +393,29 @@ $tnode = Select-Xml -Xml $xxml -XPath "//node()[not(./node())]"
 # IExpbWl0ZWQxIzAhBgNVBAMTGkNPTU9ETyBSU0EgQ29kZSBTaWduaW5nIENBAhEA
 # 1COFaExESSMmfunez9AKZDAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAig
 # AoAAoQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgEL
-# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQU6uiZzH8jLssvnFBVdLTE
-# 2nmswEYwDQYJKoZIhvcNAQEBBQAEggEAABQ7jJmVP0728lPtFQL8QGbhOjtK4liP
-# 1encSKykpeQ5oPrFuxEJ7OBTYXVNNxlBNvpJeIc0Kgjd4Xik3qFi/1yg8j5PmlCG
-# LENnCmHKWZRYT+DIHqIs4nym3f6d/SY0TuZ4ka0+JAZ86LDFSAY7B0qp+Mb4JeWY
-# WhDM4/MfRUGB19LiBKoy3PmC07qm+p3fsgLEj0Y73zA66NhNGyr36oo9cxCXc4Yu
-# aEcj618jWh8D6RAyKOg6X33aGOa2/HwiuFNDSvSYgCOMW0OwPFbWdPIxz3e+Zu8D
-# ujaCOQh4zjVfQ7eSuxuHztw1xRk55i5AL/eqjFIbZN7phTXMr/PshKGCA0gwggNE
+# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUv/n3+rBbDaCLRHm9efNo
+# /0aDgpEwDQYJKoZIhvcNAQEBBQAEggEAj7rsfDeF86+shc2KvxswaLSsCrTiiIxd
+# 2h+0PFOAHMn7sXZh5mtn0SVHc1RoBBnnlVhM2jeUJoXEHHTGxOoGFUwc2a/BAJHu
+# LWk+ysZ2hVM070E9UvHR/rl6mwyXkP0f/I3c1S7ESef18SgvG+J7FYE03B8ysH3R
+# 6OKB4rKJmFg3zftx78dSQXMxLo8JNPCxTyuUFYEAAePgvMiIJFRwJ/++16fRh02r
+# qdFp3Hm041K3beYEKt8PEmhZJaFB94BU/pofOK3vJusX4TAIB6keiioFAp+AYwr5
+# 8Tq62R35iOrCPpu/EsiFRuSIwfr2Hr/nfgd0cjVJAZlBp+w7Rrp2bKGCA0gwggNE
 # BgkqhkiG9w0BCQYxggM1MIIDMQIBATCBkzB+MQswCQYDVQQGEwJQTDEiMCAGA1UE
 # ChMZVW5pemV0byBUZWNobm9sb2dpZXMgUy5BLjEnMCUGA1UECxMeQ2VydHVtIENl
 # cnRpZmljYXRpb24gQXV0aG9yaXR5MSIwIAYDVQQDExlDZXJ0dW0gVHJ1c3RlZCBO
 # ZXR3b3JrIENBAhEA/mfk8Vok48YNVHygIMJ2cDANBglghkgBZQMEAgEFAKCCAXIw
 # GgYJKoZIhvcNAQkDMQ0GCyqGSIb3DQEJEAEEMBwGCSqGSIb3DQEJBTEPFw0yMTAz
-# MjYwNzUzMjRaMC8GCSqGSIb3DQEJBDEiBCDEmY5OGkeF327BvjpwkPzUAdO9QDHd
-# kpqLFQJqQYCAnjA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCDZyqvDIltwMM24PjhG
+# MjYwOTM5MDFaMC8GCSqGSIb3DQEJBDEiBCA9NEE4WpNyg4OWNYuWRUz8GlFUkk+m
+# P77v4UDv4XNFVTA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCDZyqvDIltwMM24PjhG
 # 42kcFO15CxdkzhtPBDFXiZxcWDCBywYLKoZIhvcNAQkQAgwxgbswgbgwgbUwgbIE
 # FE+NTEgGSUJq74uG1NX8eTLnFC2FMIGZMIGDpIGAMH4xCzAJBgNVBAYTAlBMMSIw
 # IAYDVQQKExlVbml6ZXRvIFRlY2hub2xvZ2llcyBTLkEuMScwJQYDVQQLEx5DZXJ0
 # dW0gQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkxIjAgBgNVBAMTGUNlcnR1bSBUcnVz
 # dGVkIE5ldHdvcmsgQ0ECEQD+Z+TxWiTjxg1UfKAgwnZwMA0GCSqGSIb3DQEBAQUA
-# BIIBAFuRWrAOEI8S6B3KzJhDz1nodAVIQPOo+cUtqbRVHyKw/4PoVi3f0gcyQ03V
-# YR6sx6AoZE9A+VEF0CcJ9ssvF933VgPV03aX0tpUTuv38BS5VOPRhmoB2RSDKu8/
-# zBmNlAP3xd5v/cAtm9G1XmhN7+5CAfifaSlTH+F3QkFvSbswdRXQfZAjc7mimhjv
-# 2O0uuFucwHyH1dHIMxhOULOJpre48xNVxPxhNIJWdYWard4izVggY166gmAReVWZ
-# qq3qviEiANJ6AlhTrKxWNn16dt95/WPfqeSVIwF6rI/olUu/dmGdDw8GY4y+csyj
-# 8pyFU86ZuRJF2rj3ou1WdYIN0mk=
+# BIIBAIRJnondOBrnP/fZp3Q1ZrRe/oWH6O/iVqxiLsb1kOZl0Yj/gMpo3jF+3pJK
+# TsK/N1KHwFkbWu6hQd/aAe28xjsR3V7gCU7yMC6pPrSWN0Ay5jBlWcl/WlI1DfPN
+# jA+2R7MLFIIKH8DwotH9BtoT9MNTK0DDmb2bfX1BLagMYKhRW5Xb3f+7Cm4zKpSK
+# rBITc+iSWQVC9Z/EOTmmk+maiS5B3MeTFHhL1ssjoKQgr6RQFNmsSBI1tsppIqM8
+# To79M0QADGRs/o8wJa5KXpITHbg0uG2yLuG3JybBHRdx5oGmf58ZMxhbN9O6vmNa
+# GuRl6SOrjNJejKEPF4zcNAyG6cQ=
 # SIG # End signature block

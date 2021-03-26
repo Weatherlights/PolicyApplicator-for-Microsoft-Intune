@@ -8,6 +8,7 @@
     .Notes  
         Author        : Hauke Goetze (hauke@hauke.us)
         Version        : 1.0 - 2021/03/19 - Initial release  
+                         1.1 - 2021/03/22 - Cleaned up unused variables, cleaning up the AppName variable, added comments
           
           
     .Parameter FilePath  
@@ -54,19 +55,22 @@ param(
     [Parameter(Mandatory=$True)][string]$OutputFilePath
 );
 
+# Find out where the script as been started from.
 $AppDir = $MyInvocation.MyCommand.Path
 
+# Load all the modules from the Modules directory.
 $modulesToLoad = Get-ChildItem -Path "$AppDir\..\Modules";
 ForEach ( $module in $modulesToLoad ) {
     Import-Module $module.FullName;
 }
 
+# This object will hold the configuration that gets exported into the csv file.
+$omaConfigs = @();
+$omaConfigs += @{}; # We reserve a space for ADMX Install at the front.
 
-$OMA_DM = @();
-$OMA_DM += @{};
 
-$file = Get-Item $FilePath
 $cleanAppPolicyName = ConvertTo-ADMXCompatibleName $AppPolicyName
+$cleanAppName = ConvertTo-ADMXCompatibleName $AppName
 
 $outfilePath
 if ( $PathOnTargetSystem ) {
@@ -75,10 +79,10 @@ if ( $PathOnTargetSystem ) {
     $outfilePath = $FilePath;
 }
 
-$regKey = Get-PolicyRegistryKey -AppName $AppName -AppPolicyName $cleanAppPolicyName;
+$regKey = Get-PolicyRegistryKey -AppName $cleanAppName -AppPolicyName $cleanAppPolicyName;
 
 
-$OMA_SETUP = "./Vendor/MSFT/Policy/ConfigOperations/ADMXInstall/$AppName/Policy/$AppName`_$cleanAppPolicyName"
+$OMA_SETUP = "./Vendor/MSFT/Policy/ConfigOperations/ADMXInstall/$cleanAppName/Policy/$cleanAppName`_$cleanAppPolicyName"
 
 if ( $Context -eq "Machine" ) {
 $OMA_Context = "Device"
@@ -90,17 +94,17 @@ $OMA_Base = "./$OMA_Context/Vendor/MSFT/Policy/Config/"
 
 $encoding = Get-FileEncoding -Path $FilePath
 
-$omaConfigFileUri = "$oma_base$AppName~Policy~$cleanAppPolicyName/$AppName-$cleanAppPolicyName-File"
+$omaConfigFileUri = "$oma_base$cleanAppName~Policy~$cleanAppPolicyName/$cleanAppName-$cleanAppPolicyName-File"
 
 $omaConfigFile = [PSCustomObject]@{
     "@odata.type" = "#microsoft.graph.omaSettingString";
-    "displayName" = $AppName+': '+ $cleanAppPolicyName +" File configuration";
+    "displayName" = $AppName+': '+ $AppPolicyName +" File configuration";
     "description" = ""
-    "value" = "<enabled/><data id=`"$AppName-$cleanAppPolicyName-File-path`" value=`"$outFilePath`"/><data id=`"$AppName-$cleanAppPolicyName-File-createfile`" value=`"true`"/><data id=`"$AppName-$cleanAppPolicyName-File-encoding`" value=`"$encoding`"/>";
+    "value" = "<enabled/><data id=`"$cleanAppName-$cleanAppPolicyName-File-path`" value=`"$outFilePath`"/><data id=`"$cleanAppName-$cleanAppPolicyName-File-operation`" value=`"create`"/><data id=`"$cleanAppName-$cleanAppPolicyName-File-encoding`" value=`"$encoding`"/>";
     "omauri" = $omaConfigFileUri;
 };
 
-$OMA_DM += $omaConfigFile;
+$omaConfigs += $omaConfigFile;
 
 $iniContent = Get-IniContent -FilePath $FilePath;
 $categories = '<category name="'+$cleanAppPolicyName+'" displayName="$(string.Nothing)" />';
@@ -111,12 +115,12 @@ $iniSectionKeys = $iniContent.Keys | Sort-Object
 ForEach ( $sectionname in $iniSectionKeys ) {
     
 
-    $omaattributebase ="$oma_base$AppName~Policy~$cleanAppPolicyName"
+    $omaattributebase ="$oma_base$cleanAppName~Policy~$cleanAppPolicyName"
 
     $inisection = $iniContent."$sectionname";
     ForEach ( $keyname in $inisection.Keys ) {
         $value = $inisection."$keyname"
-        $policyName = "$AppName-$cleanAppPolicyName-$i"
+        $policyName = "$cleanAppName-$cleanAppPolicyName-$i"
 
         $displayName = "";
         if ( $sectionname -ne "__No-Section__" ) {
@@ -130,8 +134,8 @@ ForEach ( $sectionname in $iniSectionKeys ) {
 
         $configuredvalue = "<enabled/><data id=`"$PolicyName-operation`" value=`"$Operation`"/><data id=`"$PolicyName-value`" value=`"$value`"/><data id=`"$PolicyName-section`" value=`"$sectionname`"/><data id=`"$PolicyName-key`" value=`"$keyname`"/>"
 
-
-        $config = [PSCustomObject]@{
+        # Define an intune custom profile element.
+        $omaConfig = [PSCustomObject]@{
             "@odata.type" = "#microsoft.graph.omaSettingString";
             "displayName" = $displayName;
             "description" = ""
@@ -139,10 +143,10 @@ ForEach ( $sectionname in $iniSectionKeys ) {
             "omauri" = $fullomauri;
         };
 
-
-        $OMA_DM += $config;
+        # And add it to the rest.
+        $omaConfigs += $omaConfig;
         
-
+        # Build the final ADMX Policy
         $policy = Get-ADMXPolicyForIni -CategoryName $cleanAppPolicyName -PolicyName $policyName -Class $Context -Key "$regKey\$i";
 
 
@@ -150,26 +154,26 @@ ForEach ( $sectionname in $iniSectionKeys ) {
         $i++;
     }
 }
-$ADMXContent = Get-ADMXTemplate -AppName $AppName -Categories $categories -Policies $policies -AppPolicyName $cleanAppPolicyName -FileType "ini" -Class $Context;
+$ADMXContent = Get-ADMXTemplate -AppName $cleanAppName -Categories $categories -Policies $policies -AppPolicyName $cleanAppPolicyName -FileType "ini" -Class $Context;
 
 $config = [PSCustomObject]@{
     "@odata.type" = "#microsoft.graph.omaSettingString";
-    "displayName" = $AppName+': '+ $cleanAppPolicyName+" ADMX Install";
+    "displayName" = $AppName+': '+ $AppPolicyName+" ADMX Install";
     "description" = ""
     "value" = $ADMXContent;
     "omauri" = $oma_setup;
 };
- $OMA_DM[0] = $config;
+ $omaConfigs[0] = $config;
 
 
-$OMA_DM | Select-Object -Property displayName,description,omauri,value | Export-csv -Path $OutputFilePath -NoTypeInformation
+$omaConfigs | Select-Object -Property displayName,description,omauri,value | Export-csv -Path $OutputFilePath -NoTypeInformation
 
 ### I use a code signature to sign my files. You may use your own.
 # SIG # Begin signature block
 # MIIWYAYJKoZIhvcNAQcCoIIWUTCCFk0CAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUyz+q09Y1sso9slp6ZxbwUNDq
-# YM6gghBKMIIE3DCCA8SgAwIBAgIRAP5n5PFaJOPGDVR8oCDCdnAwDQYJKoZIhvcN
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU1jq1TFyAeJ5OJm6q6Geni2DW
+# qTCgghBKMIIE3DCCA8SgAwIBAgIRAP5n5PFaJOPGDVR8oCDCdnAwDQYJKoZIhvcN
 # AQELBQAwfjELMAkGA1UEBhMCUEwxIjAgBgNVBAoTGVVuaXpldG8gVGVjaG5vbG9n
 # aWVzIFMuQS4xJzAlBgNVBAsTHkNlcnR1bSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0
 # eTEiMCAGA1UEAxMZQ2VydHVtIFRydXN0ZWQgTmV0d29yayBDQTAeFw0xNjAzMDgx
@@ -261,29 +265,29 @@ $OMA_DM | Select-Object -Property displayName,description,omauri,value | Export-
 # IExpbWl0ZWQxIzAhBgNVBAMTGkNPTU9ETyBSU0EgQ29kZSBTaWduaW5nIENBAhEA
 # 1COFaExESSMmfunez9AKZDAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAig
 # AoAAoQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgEL
-# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUoUfr0twbzhb6DS5038Ek
-# AhayhqowDQYJKoZIhvcNAQEBBQAEggEAN9Y9I2oBD7lLtO5YhHL/lJmjXDcrgY1R
-# NRdzTiNFCQJgKPWRafbXI/onxF+EFlINYaf6CQbEF1cNAKgS31EuJ9sWG3hKFdBr
-# qKpv6t/FsqQ2A8zHiAPcMo66fbtML5k1BTlqvCxYA4E3CWGsyp2KLL4poEs+E369
-# N83Fix97mKRt0M0XFQTAlITxmseJ55gR8Z3GQt+QjpLNdJ3bBNGfFDiiF2iEA5xO
-# WTyJGjuQKrqkFHsy6SqN+OsDtgqIApG8mYftGr+lb//vPyjkYTRX6rWGYiLggeYy
-# 0cGLMBw5RJXkeSca1oUJF8A/pjiR/Ft6gjeKCSvHM2iCol5gso1MmqGCA0gwggNE
+# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUNnyucKM3+Y0sy40JqKbP
+# jISiKV4wDQYJKoZIhvcNAQEBBQAEggEAjZ8qjtf/RLmyQvko/6kpZOTaeDj0HyWW
+# aJ3WnbeWVW5ecCtx2jnl8H6t1/prSczT2yqp0jtGXflEdgsSbwOJd4C10qsZZ9Ry
+# Hq4WE2qsr1d/2Q7G54nlfJsQ8DSHnn50haMhxo5hEBvTjlUMxs5M4NCBRYKnggmX
+# gAi8V6w70KMKp5VimSwOJYBf/M+8TcD2qMdPZheXd9S1JL7sK5udwOGKvWaSg1PG
+# hsq/9vJVA41EZOFTEPJRZlDsrxfwRDMn1/20CPVVrJJ1qkFEfmvV6nsNH4GC5NPx
+# 6Gj7SeJTkS7mKF4+gaGTDP69TrOg9DVHYgs12PbhMkx81dd1SFCLf6GCA0gwggNE
 # BgkqhkiG9w0BCQYxggM1MIIDMQIBATCBkzB+MQswCQYDVQQGEwJQTDEiMCAGA1UE
 # ChMZVW5pemV0byBUZWNobm9sb2dpZXMgUy5BLjEnMCUGA1UECxMeQ2VydHVtIENl
 # cnRpZmljYXRpb24gQXV0aG9yaXR5MSIwIAYDVQQDExlDZXJ0dW0gVHJ1c3RlZCBO
 # ZXR3b3JrIENBAhEA/mfk8Vok48YNVHygIMJ2cDANBglghkgBZQMEAgEFAKCCAXIw
 # GgYJKoZIhvcNAQkDMQ0GCyqGSIb3DQEJEAEEMBwGCSqGSIb3DQEJBTEPFw0yMTAz
-# MjAxNjIyMTJaMC8GCSqGSIb3DQEJBDEiBCBWyiKgAZk3pvwHOHQVEp0tuTezRtHQ
-# ukquuFouH+adkTA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCDZyqvDIltwMM24PjhG
+# MjYwODU0MDJaMC8GCSqGSIb3DQEJBDEiBCDG7sctzAGjcKcVM7NsqBiwmtm98bWx
+# JI96Iwktuyx55zA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCDZyqvDIltwMM24PjhG
 # 42kcFO15CxdkzhtPBDFXiZxcWDCBywYLKoZIhvcNAQkQAgwxgbswgbgwgbUwgbIE
 # FE+NTEgGSUJq74uG1NX8eTLnFC2FMIGZMIGDpIGAMH4xCzAJBgNVBAYTAlBMMSIw
 # IAYDVQQKExlVbml6ZXRvIFRlY2hub2xvZ2llcyBTLkEuMScwJQYDVQQLEx5DZXJ0
 # dW0gQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkxIjAgBgNVBAMTGUNlcnR1bSBUcnVz
 # dGVkIE5ldHdvcmsgQ0ECEQD+Z+TxWiTjxg1UfKAgwnZwMA0GCSqGSIb3DQEBAQUA
-# BIIBAEKsdbD+BHW1IgudX80k6PARHBrl4dnlZWBTKarJHiDC9+6SxaQy1+u/AIiq
-# O4gII+ACjtbwZrk28xWuHcoXJ2gbS/JHLOB3WLWceyE04fVbk+bMZAKvmHJbuzN9
-# ++CXwokpwaw6EoRHrqERmCMEoR4B4o16vOa3I585wTbPiEqHqQVqTnrHc1FYzZP+
-# Byd4/5GeMEKjJBfi3g71RJsFj2GVI/T9USQ3pwl7arBzpaS2++FNgyuYW6/iD/qn
-# u7p19tWID1m6NzLiA8O2zKBG4rFlhYdejGEg+mTOmLqY7YdYAC8RUndZHbKQne/e
-# bWAlSj5C6ImbynOyNUtah15YDzk=
+# BIIBAKefM0q1FeQQB/s30mK/E2cWwWVuYcabrCcflGva/TJzQhim2P42xDjvpmgt
+# E76AmAcIUSNs0aLLUlZGJONd5Ts5ptHYYigv800DA4L0AfAUH76XK3WhiYimV7+O
+# +sUIuQFCncsO6qQe3BhD7oU1Oxwh9sH/AeREvawuo2JTULPGlGSoZMCK8wzsVWyh
+# 13shfwq4PehIq9W3u8A+NfLGvXgfhLvtgQ2tsiVHcmThUrkLWt+/5stD/34L1qGc
+# l7HmmnszlUOA7POvrJ7SUM7rq7fos8iSMMHgq2R2FEyABmua6ElXb/5Maq640T3p
+# uMM0IBR6n+J2c2jJg3kzBX+dnFM=
 # SIG # End signature block
