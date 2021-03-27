@@ -2,6 +2,28 @@
 # Author: Hauke Götze
 
 function Test-XPathValueOnContent {
+<#
+.SYNOPSIS
+    Tests for an xml node value.
+.DESCRIPTION
+    This function tests an xml node for a value. The xml node can be selected by providing an xpath query.
+.PARAMETER Xml
+    The xml document that you want to evaluate
+.PARAMETER XPath
+    The XPath to the node of the Xml document that you want to evaluate.
+.PARAMETER Namespace
+    A table of namespaces that are used in the provided xpath query.
+.PARAMETER Value
+    The value that you want to test against.
+.PARAMETER Remediate
+    If provided the function will replace the node value with the given value if they do not match.
+.OUTPUTS
+    bool
+.NOTES
+    Created by Hauke Goetze
+.LINK
+    https://policyapplicator.weatherlights.com
+#>
     param(
         [Parameter(Mandatory=$True)][xml]$Xml,
         [Parameter(Mandatory=$True)][string]$XPath,
@@ -27,8 +49,27 @@ function Test-XPathValueOnContent {
     return $false;
 }
 
-# This works on simple xpath and simple documents. 
 function Set-XmlNodeByXpath {
+<#
+.SYNOPSIS
+    Creates or sets an xml node by a given xpath.
+.DESCRIPTION
+    This function can set or create an xml node by a given xpath query.
+.PARAMETER Xml
+    The xml document that you want to modify.
+.PARAMETER XPath
+    The XPath to the node of the Xml document that you want to modify or create. Warning: This function only works on simple xpath queries that provide a full path to the node and do not use functions but only implicit child selectors.
+.PARAMETER Namespace
+    A table of namespaces that are used in the provided xpath query.
+.PARAMETER Value
+    The value that you want to set.
+.PARAMETER Operation
+    Specifies what you want to do with the selected node (Create, delete, update or replace).
+.NOTES
+    Created by Hauke Goetze
+.LINK
+    https://policyapplicator.weatherlights.com
+#>
     param(
         [Parameter(Mandatory=$True)][string]$Xpath, 
         [string]$Value,
@@ -295,8 +336,8 @@ function Get-NodeNamespaces {
 # SIG # Begin signature block
 # MIIWYAYJKoZIhvcNAQcCoIIWUTCCFk0CAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUdgvuwcKeqSlsJgxtgVCuG/aR
-# QmGgghBKMIIE3DCCA8SgAwIBAgIRAP5n5PFaJOPGDVR8oCDCdnAwDQYJKoZIhvcN
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUzwki1O8UYAVDf29H6nYUtnFZ
+# e5ugghBKMIIE3DCCA8SgAwIBAgIRAP5n5PFaJOPGDVR8oCDCdnAwDQYJKoZIhvcN
 # AQELBQAwfjELMAkGA1UEBhMCUEwxIjAgBgNVBAoTGVVuaXpldG8gVGVjaG5vbG9n
 # aWVzIFMuQS4xJzAlBgNVBAsTHkNlcnR1bSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0
 # eTEiMCAGA1UEAxMZQ2VydHVtIFRydXN0ZWQgTmV0d29yayBDQTAeFw0xNjAzMDgx
@@ -388,29 +429,29 @@ function Get-NodeNamespaces {
 # IExpbWl0ZWQxIzAhBgNVBAMTGkNPTU9ETyBSU0EgQ29kZSBTaWduaW5nIENBAhEA
 # 1COFaExESSMmfunez9AKZDAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAig
 # AoAAoQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgEL
-# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUJXvcmVLzAq3B4x66Rt96
-# q5QjjWwwDQYJKoZIhvcNAQEBBQAEggEAHCQhuyOQeSm6cNbcROiHtOZuOMiJD/vb
-# mM5KPcieOZeay2V5pf5oK3k5yhcJjt/xHkFQ4fU4gYoTnwpsQyNsEfVnzaosl3eV
-# t7PHWm68/bNVw1Qv0M9O3oys9MJMshUzc++iN8S0z8f1JuzjwC0uZvihyd0F/6YF
-# RthLE0VKjq3G+Uw5y/ppVqwiV0Nzy23YhU5ETAkXvqo2vE/FwzKd1qVzc5rmdd4A
-# Qw/8p/eCQl5FyOhA6BtLdxqPrKxfd5T1Q1OCuKOvOanKBUEVA98k2cQ8ZE51ergI
-# 7CtcR7ougSvsHLSe+ec9NoOEGaaAkZ9o8n/w5VdCjiLS5jS4/koLBaGCA0gwggNE
+# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUwczehIlqam77O4OXnx5W
+# Xu6Y8VIwDQYJKoZIhvcNAQEBBQAEggEAV6NE+1zC5Gj73/yTNfqJUt5rgAjWafaG
+# /qHH6F7ClXGFhDX5b5n0S0V4MOXappr8kO0hbTmpD5SSd4/AJA1BCMcl/03iOywb
+# ez67+9Ufq2m40EEwCY9N3lRaeilLXaDJpib5be4KQ753wjoCdrCmgTvSkzMgxfI1
+# DEjBaYUSskLT/I8K2tN50euDJx6pGhtJXGtZRXAb3SKaUhmuKI61K3IVtDCrAGr5
+# wFVkxyXBLhLS8LiGe1mCwtcio6Ir0ZgOsLviNTCmzjueRhpmzhKL2fa4B+0OvjZq
+# nSnYsI+2QDoaCuKTfXs50c0okfgYkwT04PxjWvg3wUB0hLEpaSCtpaGCA0gwggNE
 # BgkqhkiG9w0BCQYxggM1MIIDMQIBATCBkzB+MQswCQYDVQQGEwJQTDEiMCAGA1UE
 # ChMZVW5pemV0byBUZWNobm9sb2dpZXMgUy5BLjEnMCUGA1UECxMeQ2VydHVtIENl
 # cnRpZmljYXRpb24gQXV0aG9yaXR5MSIwIAYDVQQDExlDZXJ0dW0gVHJ1c3RlZCBO
 # ZXR3b3JrIENBAhEA/mfk8Vok48YNVHygIMJ2cDANBglghkgBZQMEAgEFAKCCAXIw
 # GgYJKoZIhvcNAQkDMQ0GCyqGSIb3DQEJEAEEMBwGCSqGSIb3DQEJBTEPFw0yMTAz
-# MjcxNTQ2MTJaMC8GCSqGSIb3DQEJBDEiBCDYAHPtHZmx7EwbU31myIDvnL0wa0Lk
-# nyjmSIHNkj02QzA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCDZyqvDIltwMM24PjhG
+# MjcxNjE0MThaMC8GCSqGSIb3DQEJBDEiBCCPWYgKa1LX0Orc3QuWdXOnGoIWA3Fi
+# tahDYy+51PeLmjA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCDZyqvDIltwMM24PjhG
 # 42kcFO15CxdkzhtPBDFXiZxcWDCBywYLKoZIhvcNAQkQAgwxgbswgbgwgbUwgbIE
 # FE+NTEgGSUJq74uG1NX8eTLnFC2FMIGZMIGDpIGAMH4xCzAJBgNVBAYTAlBMMSIw
 # IAYDVQQKExlVbml6ZXRvIFRlY2hub2xvZ2llcyBTLkEuMScwJQYDVQQLEx5DZXJ0
 # dW0gQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkxIjAgBgNVBAMTGUNlcnR1bSBUcnVz
 # dGVkIE5ldHdvcmsgQ0ECEQD+Z+TxWiTjxg1UfKAgwnZwMA0GCSqGSIb3DQEBAQUA
-# BIIBADMuWxA9wk0lNXSa69snkHPZ9sgX12Z13kE28F2nYOFL3Qm7zelFYzyq3w4K
-# KKyhwWnDx57FBZmA66VDXnOf+LsRrDxEz5kXku0aq/sLolBMgaH2mSCi0XCQ5CBq
-# LbJgXSdrumE6VMGhxR2HGMF4TTMWbumd35JH4zNPdWU4FNtz0UBt5GgjOuTE4LyJ
-# pIEl3TMtjYAOmMUxc2klCFh0mDcn2hpfC9/xM9uKct7LTp9CWeIWN+bf9MPCeT8I
-# dtOGzxp24IcvfaUsS3C3QudVMmZQLloQ+bp+osUB2XoVGH6CKj8pIs9D8VHhwwcu
-# MmkTehpWmRLZ2GheW6bRzZ8ZSv0=
+# BIIBAHgzwuEhpUfTueYDm479l+riaSRMKdhqZxRimSyCxoQ5QF2EV6McG+RyFs3f
+# 8WneIMIoFmT61pfhdjYe6xCywWSwsvYE7f9wbBeCX3Andk90lrUzelH95Ycu/7Gk
+# VuTfxHyFZEHW5zhtIymVcxd6UIZPvytOFao8z090vXOndKd+P7DdvZAA7NWewmM0
+# HwArjdBwrhsKfszKxnA5LbWkHjvMrZvhsBVsKhaXEZA4NjARb4RZ9u/lrlLg7+PJ
+# KkDAwygE6uUhovwA+Qn4apkEnU7tpmuadj61sHLr7D8MpgPIfVeHhvMkGgdZlBS3
+# iGZXmhbJF29WQr/OnUNx2ySAATo=
 # SIG # End signature block
