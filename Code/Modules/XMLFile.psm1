@@ -1,7 +1,6 @@
 ﻿##### XPATH Remediation Script #####
 # Author: Hauke Götze
 
-
 function Test-XPathValueOnContent {
     param(
         [Parameter(Mandatory=$True)][xml]$Xml,
@@ -10,7 +9,7 @@ function Test-XPathValueOnContent {
         [switch]$Remediate,
         [System.Collections.Hashtable]$Namespace
     )
-    Write-Host $XPath
+
     $Element = Select-Xml -Xml $Xml -XPath $XPath -Namespace $Namespace;
     if ( $Element ) {
         if ( $Element.Node.InnerText -eq $Value -or $Element.Node.'#text' -eq $Value ) {
@@ -293,15 +292,11 @@ function Get-NodeNamespaces {
   return $namespace;
 }
 
-[xml]$xxml = '<a xmlns="http://ur1" xmlns:stuff="http://stuff"><b><stuff:c attr1="1" stuff:attr2="2">hi</stuff:c></b></a>'
-$xnode = Select-Xml -Xml $xxml -XPath "//node()/@*";
-$tnode = Select-Xml -Xml $xxml -XPath "//node()[not(./node())]"
-
 # SIG # Begin signature block
 # MIIWYAYJKoZIhvcNAQcCoIIWUTCCFk0CAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUEvse1m6JMrSjfWST/ovVf+Qc
-# x++gghBKMIIE3DCCA8SgAwIBAgIRAP5n5PFaJOPGDVR8oCDCdnAwDQYJKoZIhvcN
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUdgvuwcKeqSlsJgxtgVCuG/aR
+# QmGgghBKMIIE3DCCA8SgAwIBAgIRAP5n5PFaJOPGDVR8oCDCdnAwDQYJKoZIhvcN
 # AQELBQAwfjELMAkGA1UEBhMCUEwxIjAgBgNVBAoTGVVuaXpldG8gVGVjaG5vbG9n
 # aWVzIFMuQS4xJzAlBgNVBAsTHkNlcnR1bSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0
 # eTEiMCAGA1UEAxMZQ2VydHVtIFRydXN0ZWQgTmV0d29yayBDQTAeFw0xNjAzMDgx
@@ -393,29 +388,29 @@ $tnode = Select-Xml -Xml $xxml -XPath "//node()[not(./node())]"
 # IExpbWl0ZWQxIzAhBgNVBAMTGkNPTU9ETyBSU0EgQ29kZSBTaWduaW5nIENBAhEA
 # 1COFaExESSMmfunez9AKZDAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAig
 # AoAAoQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgEL
-# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUv/n3+rBbDaCLRHm9efNo
-# /0aDgpEwDQYJKoZIhvcNAQEBBQAEggEAj7rsfDeF86+shc2KvxswaLSsCrTiiIxd
-# 2h+0PFOAHMn7sXZh5mtn0SVHc1RoBBnnlVhM2jeUJoXEHHTGxOoGFUwc2a/BAJHu
-# LWk+ysZ2hVM070E9UvHR/rl6mwyXkP0f/I3c1S7ESef18SgvG+J7FYE03B8ysH3R
-# 6OKB4rKJmFg3zftx78dSQXMxLo8JNPCxTyuUFYEAAePgvMiIJFRwJ/++16fRh02r
-# qdFp3Hm041K3beYEKt8PEmhZJaFB94BU/pofOK3vJusX4TAIB6keiioFAp+AYwr5
-# 8Tq62R35iOrCPpu/EsiFRuSIwfr2Hr/nfgd0cjVJAZlBp+w7Rrp2bKGCA0gwggNE
+# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUJXvcmVLzAq3B4x66Rt96
+# q5QjjWwwDQYJKoZIhvcNAQEBBQAEggEAHCQhuyOQeSm6cNbcROiHtOZuOMiJD/vb
+# mM5KPcieOZeay2V5pf5oK3k5yhcJjt/xHkFQ4fU4gYoTnwpsQyNsEfVnzaosl3eV
+# t7PHWm68/bNVw1Qv0M9O3oys9MJMshUzc++iN8S0z8f1JuzjwC0uZvihyd0F/6YF
+# RthLE0VKjq3G+Uw5y/ppVqwiV0Nzy23YhU5ETAkXvqo2vE/FwzKd1qVzc5rmdd4A
+# Qw/8p/eCQl5FyOhA6BtLdxqPrKxfd5T1Q1OCuKOvOanKBUEVA98k2cQ8ZE51ergI
+# 7CtcR7ougSvsHLSe+ec9NoOEGaaAkZ9o8n/w5VdCjiLS5jS4/koLBaGCA0gwggNE
 # BgkqhkiG9w0BCQYxggM1MIIDMQIBATCBkzB+MQswCQYDVQQGEwJQTDEiMCAGA1UE
 # ChMZVW5pemV0byBUZWNobm9sb2dpZXMgUy5BLjEnMCUGA1UECxMeQ2VydHVtIENl
 # cnRpZmljYXRpb24gQXV0aG9yaXR5MSIwIAYDVQQDExlDZXJ0dW0gVHJ1c3RlZCBO
 # ZXR3b3JrIENBAhEA/mfk8Vok48YNVHygIMJ2cDANBglghkgBZQMEAgEFAKCCAXIw
 # GgYJKoZIhvcNAQkDMQ0GCyqGSIb3DQEJEAEEMBwGCSqGSIb3DQEJBTEPFw0yMTAz
-# MjYwOTM5MDFaMC8GCSqGSIb3DQEJBDEiBCA9NEE4WpNyg4OWNYuWRUz8GlFUkk+m
-# P77v4UDv4XNFVTA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCDZyqvDIltwMM24PjhG
+# MjcxNTQ2MTJaMC8GCSqGSIb3DQEJBDEiBCDYAHPtHZmx7EwbU31myIDvnL0wa0Lk
+# nyjmSIHNkj02QzA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCDZyqvDIltwMM24PjhG
 # 42kcFO15CxdkzhtPBDFXiZxcWDCBywYLKoZIhvcNAQkQAgwxgbswgbgwgbUwgbIE
 # FE+NTEgGSUJq74uG1NX8eTLnFC2FMIGZMIGDpIGAMH4xCzAJBgNVBAYTAlBMMSIw
 # IAYDVQQKExlVbml6ZXRvIFRlY2hub2xvZ2llcyBTLkEuMScwJQYDVQQLEx5DZXJ0
 # dW0gQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkxIjAgBgNVBAMTGUNlcnR1bSBUcnVz
 # dGVkIE5ldHdvcmsgQ0ECEQD+Z+TxWiTjxg1UfKAgwnZwMA0GCSqGSIb3DQEBAQUA
-# BIIBAIRJnondOBrnP/fZp3Q1ZrRe/oWH6O/iVqxiLsb1kOZl0Yj/gMpo3jF+3pJK
-# TsK/N1KHwFkbWu6hQd/aAe28xjsR3V7gCU7yMC6pPrSWN0Ay5jBlWcl/WlI1DfPN
-# jA+2R7MLFIIKH8DwotH9BtoT9MNTK0DDmb2bfX1BLagMYKhRW5Xb3f+7Cm4zKpSK
-# rBITc+iSWQVC9Z/EOTmmk+maiS5B3MeTFHhL1ssjoKQgr6RQFNmsSBI1tsppIqM8
-# To79M0QADGRs/o8wJa5KXpITHbg0uG2yLuG3JybBHRdx5oGmf58ZMxhbN9O6vmNa
-# GuRl6SOrjNJejKEPF4zcNAyG6cQ=
+# BIIBADMuWxA9wk0lNXSa69snkHPZ9sgX12Z13kE28F2nYOFL3Qm7zelFYzyq3w4K
+# KKyhwWnDx57FBZmA66VDXnOf+LsRrDxEz5kXku0aq/sLolBMgaH2mSCi0XCQ5CBq
+# LbJgXSdrumE6VMGhxR2HGMF4TTMWbumd35JH4zNPdWU4FNtz0UBt5GgjOuTE4LyJ
+# pIEl3TMtjYAOmMUxc2klCFh0mDcn2hpfC9/xM9uKct7LTp9CWeIWN+bf9MPCeT8I
+# dtOGzxp24IcvfaUsS3C3QudVMmZQLloQ+bp+osUB2XoVGH6CKj8pIs9D8VHhwwcu
+# MmkTehpWmRLZ2GheW6bRzZ8ZSv0=
 # SIG # End signature block

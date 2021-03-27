@@ -1,8 +1,4 @@
-﻿
-
-
-
-Function Get-IniContent {  
+﻿Function Get-IniContent {  
     <#  
     .Synopsis  
         Gets the content of an INI file  
@@ -18,6 +14,7 @@ Function Get-IniContent {
         Version        : 1.0 - 2010/03/12 - Initial release  
                       1.1 - 2014/12/11 - Typo (Thx SLDR) 
                                          Typo (Thx Dave Stiff) 
+                         1.3 - 2021/03/27 - By Hauke Goetze: Modified to ignore comments and to better mark no section areas. 
           
         #Requires -Version 2.0  
           
@@ -76,18 +73,6 @@ Function Get-IniContent {
                 $section = $matches[1]  
                 $ini[$section] = @{}  
                 $CommentCount = 0  
-            }  
-            "^([#;].*)$" # Comment  
-            {  
-#                if (!($section))  
-#                {  
-#                    $section = "No-Section"  
-#                    $ini[$section] = @{}  
-#                }  
-#                $value = $matches[1]  
-#                $CommentCount = $CommentCount + 1  
-#                $name = "Comment" + $CommentCount  
-#                $ini[$section][$name] = $value  
             }   
             "^([^#;]{1}.+?)\s*=\s*(.*)" # Key  
             {  
@@ -123,7 +108,8 @@ Function Out-IniFile {
                       http://gallery.technet.microsoft.com/scriptcenter/ea40c1ef-c856-434b-b8fb-ebd7a76e8d91 
         Version        : 1.0 - 2010/03/12 - Initial release  
                       1.1 - 2012/04/19 - Bugfix/Added example to help (Thx Ingmar Verheij)  
-                      1.2 - 2014/12/11 - Improved handling for missing output file (Thx SLDR) 
+                      1.2 - 2014/12/11 - Improved handling for missing output file (Thx SLDR)
+                      1.3 - 2021/03/27 - By Hauke Goetze: Better support for no section keys. 
           
         #Requires -Version 2.0  
           
@@ -176,14 +162,6 @@ Function Out-IniFile {
         Description  
         Saves the content of the $IniVar Hashtable to the INI File c:\myinifile.ini and saves the file into $file  
   
-    .Example  
-        $Category1 = @{â€œKey1â€=â€Value1â€;â€Key2â€=â€Value2â€}  
-    $Category2 = @{â€œKey1â€=â€Value1â€;â€Key2â€=â€Value2â€}  
-    $NewINIContent = @{â€œCategory1â€=$Category1;â€Category2â€=$Category2}  
-    Out-IniFile -InputObject $NewINIContent -FilePath "C:\MyNewFile.INI"  
-        -----------  
-        Description  
-        Creating a custom Hashtable and saving it to C:\MyNewFile.INI  
     .Link  
         Get-IniContent  
     #>  
@@ -231,31 +209,26 @@ Function Out-IniFile {
             if (!($($InputObject[$i].GetType().Name) -eq "Hashtable"))  
             {  
                 #No Sections  
-                Write-Verbose "$($MyInvocation.MyCommand.Name):: Writing key: $i"  
-                #Add-Content -Path $outFile -Value "$i=$($InputObject[$i])" -Encoding $Encoding  
+                Write-Verbose "$($MyInvocation.MyCommand.Name):: Writing key: $i"   
                 $NoSectionContent += "$i=$($InputObject[$i])`n"
             } else {  
                 #Sections  
                 Write-Verbose "$($MyInvocation.MyCommand.Name):: Writing Section: [$i]"  
                 If ( $i -ne "__No-Section__" ) {
-                    #Add-Content -Path $outFile -Value "[$i]" -Encoding $Encoding  
                     $SectionContent += "[$i]`n"
                 }
                 Foreach ($j in $($InputObject[$i].keys | Sort-Object))  
                 {  
                     if ($j -match "^Comment[\d]+") {  
                         Write-Verbose "$($MyInvocation.MyCommand.Name):: Writing comment: $j"  
-                        $SectionContent += "$($InputObject[$i][$j])`n"
-                        #Add-Content -Path $outFile -Value "$($InputObject[$i][$j])" -Encoding $Encoding  
+                        $SectionContent += "$($InputObject[$i][$j])`n" 
                     } else {  
                         Write-Verbose "$($MyInvocation.MyCommand.Name):: Writing key: $j" 
                         $SectionContent += "$j=$($InputObject[$i][$j])`n" 
-                        #Add-Content -Path $outFile -Value "$j=$($InputObject[$i][$j])" -Encoding $Encoding  
                     }  
                       
                 }  
                 $SectionContent += "`n"
-                #Add-Content -Path $outFile -Value "" -Encoding $Encoding  
             }  
         }  
         Add-Content -Path $outFile -Value $NoSectionContent -Encoding $Encoding  
@@ -309,85 +282,84 @@ param (
 
 );
 
-$new_config = $null;
-$compliance = "Compliant"
-$fileWasCreated = $false;
+    $new_config = $null;
+    $compliance = "Compliant"
+    $fileWasCreated = $false;
 
-If ( Test-Path -Path $FilePath ) {
-    $current_config = Get-IniContent -FilePath $FilePath;
-    $encoding = Get-FileEncoding -Path $FilePath;
+    If ( Test-Path -Path $FilePath ) {
+        $current_config = Get-IniContent -FilePath $FilePath;
+        $encoding = Get-FileEncoding -Path $FilePath;
 
-    ForEach ( $rule in $rules ) {
-        if ( $rule.Operation -ne "Delete" ) {
-            $sectionExists = $false;
+        ForEach ( $rule in $rules ) {
+            if ( $rule.Operation -ne "Delete" ) {
+                $sectionExists = $false;
 
-            if ( !($current_config[$rule["Section"]]) ) {
-                if ( ($rule.Operation -eq "Create") -or ($rule.Operation -eq "Replace") ) {
-                    $current_config[$rule["Section"]] = @{};
+                if ( !($current_config[$rule["Section"]]) ) {
+                    if ( ($rule.Operation -eq "Create") -or ($rule.Operation -eq "Replace") ) {
+                        $current_config[$rule["Section"]] = @{};
+                        $sectionExists = $true;
+                    }
+                } else {
                     $sectionExists = $true;
                 }
-            } else {
-                $sectionExists = $true;
-            }
-            if ( $sectionExists -eq $true ) {
-                if ( $current_config[$rule["Section"]][$rule["Key"]] -ne $rule["Value"] ) {
-                    $compliance = "Non-Compliant: Section: " + $rule["Section"] + " Key: " + $rule["Key"] + " is not '" + $rule["Value"] + "' but '"+ $current_config[$rule["Section"]][$rule["Key"]] + "'";
+                if ( $sectionExists -eq $true ) {
+                    if ( $current_config[$rule["Section"]][$rule["Key"]] -ne $rule["Value"] ) {
+                        $compliance = "Non-Compliant: Section: " + $rule["Section"] + " Key: " + $rule["Key"] + " is not '" + $rule["Value"] + "' but '"+ $current_config[$rule["Section"]][$rule["Key"]] + "'";
 
-                    if ( (!$current_config[$rule["Section"]][$rule["Key"]]) -and ($rule.Operation -eq "Create") ) {
-                        $current_config[$rule["Section"]][$rule["Key"]] = $rule["Value"];
-                    }
+                        if ( (!$current_config[$rule["Section"]][$rule["Key"]]) -and ($rule.Operation -eq "Create") ) {
+                            $current_config[$rule["Section"]][$rule["Key"]] = $rule["Value"];
+                        }
 
                     
-                    if ( ($rule.Operation -eq "Update") -or ($rule.Operation -eq "Replace") ) {
-                        $current_config[$rule["Section"]][$rule["Key"]] = $rule["Value"];
+                        if ( ($rule.Operation -eq "Update") -or ($rule.Operation -eq "Replace") ) {
+                            $current_config[$rule["Section"]][$rule["Key"]] = $rule["Value"];
+                        }
                     }
+                } else {
+                    $compliance = "Non-Compliant: Section " + $rule["Section"] + " does not exist and is not beeing created.";
                 }
             } else {
-                $compliance = "Non-Compliant: Section " + $rule["Section"] + " does not exist and is not beeing created.";
-            }
-        } else {
-            if ( $current_config[$rule["Section"]] ) {
-                if ( $current_config[$rule["Section"]][$rule["Key"]] ) {
-                    $current_config[$rule["Section"]].Remove($rule["Key"]);
+                if ( $current_config[$rule["Section"]] ) {
+                    if ( $current_config[$rule["Section"]][$rule["Key"]] ) {
+                        $current_config[$rule["Section"]].Remove($rule["Key"]);
+                    }
                 }
             }
-        }
         
-    }
-
-    $new_config = $current_config;
-}
-if ( !(Test-Path -Path $FilePath) -or ( ( $compliance -ne "Compliant" ) -and ( $Operation -eq "replace" ) ) ) {
-    $compliance = "Non-Compliant: File needs to be (re-)created";
-    if ( $action -eq "Remediate" ) {
-###### Build new File #######
-        $new_config = @{}
-        ForEach ( $rule in $rules ) {
-            if ( $rule.Operation -eq "Replace" -or $rule.Operation -eq "Create" ) {
-                if ( !($new_config[$rule["Section"]]) ) {
-                    $new_config[$rule["Section"]] = @{};
-                }
-                $new_config[$rule["Section"]][$rule["Key"]] = $rule["Value"];
-            }
         }
-        $fileWasCreated = $true;  
-    }
-}
-if ( $action -eq "Remediate" -and $compliance -ne "Compliant" ) {
-    $new_config = Invoke-__NoSection__CleanUp -InputObject $new_config;
-    if ( ( $fileWasCreate -eq $false ) -or ( $operation -eq "create") -or ( $Operation -eq "replace" ) ) {
-        $new_config | Out-IniFile -FilePath $FilePath -Force -Encoding $Encoding;
-    }
-#    $compliance = "Compliant";
-}
 
-$compliance;
+        $new_config = $current_config;
+    }
+    if ( !(Test-Path -Path $FilePath) -or ( ( $compliance -ne "Compliant" ) -and ( $Operation -eq "replace" ) ) ) {
+        $compliance = "Non-Compliant: File needs to be (re-)created";
+        if ( $action -eq "Remediate" ) {
+###### Build new File #######
+            $new_config = @{}
+            ForEach ( $rule in $rules ) {
+                if ( $rule.Operation -eq "Replace" -or $rule.Operation -eq "Create" ) {
+                    if ( !($new_config[$rule["Section"]]) ) {
+                        $new_config[$rule["Section"]] = @{};
+                    }
+                    $new_config[$rule["Section"]][$rule["Key"]] = $rule["Value"];
+                }
+            }
+            $fileWasCreated = $true;  
+        }
+    }
+    if ( $action -eq "Remediate" -and $compliance -ne "Compliant" ) {
+        $new_config = Invoke-__NoSection__CleanUp -InputObject $new_config;
+        if ( ( $fileWasCreate -eq $false ) -or ( $operation -eq "create") -or ( $Operation -eq "replace" ) ) {
+            $new_config | Out-IniFile -FilePath $FilePath -Force -Encoding $Encoding;
+        }
+    }
+
+    $compliance;
 }
 # SIG # Begin signature block
 # MIIWYAYJKoZIhvcNAQcCoIIWUTCCFk0CAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUyB8U0CFPiqhYhVggT8soNgAH
-# XhqgghBKMIIE3DCCA8SgAwIBAgIRAP5n5PFaJOPGDVR8oCDCdnAwDQYJKoZIhvcN
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU7V+6lKPBAnKtoO3X/lzzXDtI
+# bJWgghBKMIIE3DCCA8SgAwIBAgIRAP5n5PFaJOPGDVR8oCDCdnAwDQYJKoZIhvcN
 # AQELBQAwfjELMAkGA1UEBhMCUEwxIjAgBgNVBAoTGVVuaXpldG8gVGVjaG5vbG9n
 # aWVzIFMuQS4xJzAlBgNVBAsTHkNlcnR1bSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0
 # eTEiMCAGA1UEAxMZQ2VydHVtIFRydXN0ZWQgTmV0d29yayBDQTAeFw0xNjAzMDgx
@@ -479,29 +451,29 @@ $compliance;
 # IExpbWl0ZWQxIzAhBgNVBAMTGkNPTU9ETyBSU0EgQ29kZSBTaWduaW5nIENBAhEA
 # 1COFaExESSMmfunez9AKZDAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAig
 # AoAAoQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgEL
-# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUf6gQq2/WLzz9j58KCXUG
-# f73LUfQwDQYJKoZIhvcNAQEBBQAEggEAaOp2v0LiZ5FcplUwVEVqjtI5dwhzS7Vi
-# TkOQHZb//vOmxGbbxiTHmqg6bN8FjBdd7vLC+0DpomWpC7rb+S5bnpyl6Rfv7Ych
-# eCqxomMEWYGPBr4dh4PrVCfRGd0gvBPES70NkZSfcdhiMcVl5iw66aZoqlTSKryH
-# /31YRlaNALVeuDpDrgz6K2g1ilCn6keunAY6zHHWPXLfoldl7eGwzKej5Hq+BLQh
-# roLDfmozRtTRy7uzRLv3BDMtvK5YTeWLTfZybwvRhWbQQTBRqzvBhfTicxfbtf+s
-# 1IQ5ynzTfhgEqhEy5xvzq5SY1M88W9D1c10UWIYJBl1g/OM385Rvq6GCA0gwggNE
+# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUtWJ1LxWvClAusuWUUalq
+# ElKvKnUwDQYJKoZIhvcNAQEBBQAEggEAjIaCm32KfaWwWp0VGuHjM9nXlBhbnZ+Q
+# fpeKme7fanWEG3P/I1W9q0nW8M2xAMHRs8ADbxneLGP13NzoxF3NGzODiFNbitAS
+# uDV8xYPhXqOTDpcyWXFRBlVtA5aJG9FiBmAiY6xjuIhKq7J4GSRWkVVwFKmOCsG7
+# 3eV9xLPtfTPTTe//SNLd+7aJNj4VnvgkGVeFDof3vx/DqvMM2plyqDSnC24rWsrZ
+# Z+a4SyTsUIT0CBHTVqNXdYBTiTZPUSQpjq7Gc+GmMB7G1flh3IszUdKVbsfynMOS
+# weL+kUNwiZrjaMJEnaaRFaXTAAlGQgWws+D6jWcfrSZWwL6zzfCyOqGCA0gwggNE
 # BgkqhkiG9w0BCQYxggM1MIIDMQIBATCBkzB+MQswCQYDVQQGEwJQTDEiMCAGA1UE
 # ChMZVW5pemV0byBUZWNobm9sb2dpZXMgUy5BLjEnMCUGA1UECxMeQ2VydHVtIENl
 # cnRpZmljYXRpb24gQXV0aG9yaXR5MSIwIAYDVQQDExlDZXJ0dW0gVHJ1c3RlZCBO
 # ZXR3b3JrIENBAhEA/mfk8Vok48YNVHygIMJ2cDANBglghkgBZQMEAgEFAKCCAXIw
 # GgYJKoZIhvcNAQkDMQ0GCyqGSIb3DQEJEAEEMBwGCSqGSIb3DQEJBTEPFw0yMTAz
-# MjYwOTM5MDFaMC8GCSqGSIb3DQEJBDEiBCCR0qNPPabIpmzidNFHx5ax1XW4KrKn
-# WCm9r83/swIfpjA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCDZyqvDIltwMM24PjhG
+# MjcxNTUxNTFaMC8GCSqGSIb3DQEJBDEiBCAfoiShi1WgZqz5L5wDxQKMsCe5phx8
+# AEvw+GkW+U2k1TA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCDZyqvDIltwMM24PjhG
 # 42kcFO15CxdkzhtPBDFXiZxcWDCBywYLKoZIhvcNAQkQAgwxgbswgbgwgbUwgbIE
 # FE+NTEgGSUJq74uG1NX8eTLnFC2FMIGZMIGDpIGAMH4xCzAJBgNVBAYTAlBMMSIw
 # IAYDVQQKExlVbml6ZXRvIFRlY2hub2xvZ2llcyBTLkEuMScwJQYDVQQLEx5DZXJ0
 # dW0gQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkxIjAgBgNVBAMTGUNlcnR1bSBUcnVz
 # dGVkIE5ldHdvcmsgQ0ECEQD+Z+TxWiTjxg1UfKAgwnZwMA0GCSqGSIb3DQEBAQUA
-# BIIBAJfcxOopdJ64pHcZVyNDXb3VGDazJ8pnDNQ2hvFe1zlyVNK1eOWYlysw0345
-# WvqAtNvgzzqFxOb2y7bf2Sa5Wb52ws2X/QONsEnDN4vm/69Ye99lw6Fxn1TEuffq
-# 8PXlA7Fd/N/exTj145YSOgGa0Xov3G9SuFjqJ93k5MbycQPxj/Mq6sVjNmxMv5t/
-# fWpeSePZhmukC510ggStqI+O9nbp/YSNkjWEXrhv3JHAgkQ4XYex2jSq27YD6Rxm
-# pqL5DXRTh+3vBo+MMdGXRe5Y7l4kshqfSuGx/WVTclvrzPubE1g2wmhWVW5w585r
-# VEO0TCM5fzLFvdN+aoTlkL0vscg=
+# BIIBAKMAJXIWcjeSJ3NlRNRU5rdaZ8SZdMyL0TD1en9Zb/EkX/I2PmtrJRpLypyl
+# ad1x8AkKpx+m8Wzw9RO9nN6YdOXavYty5i6GmM3MGUROiOSakvYPtOqoDrn65Cj7
+# RhCFQhceYhr0H1iYVnW3stzBPlgfc8khjQA8h4bwCRZ7+30KEJ5inAT0kRVGJz3S
+# Xr7m6sM+0oPtLAIX4tcxf5Hq+CW5+llyDAitKr3qU/9O9nidFCgVTS6atSYE8Ip6
+# L6i/0vQtjayalmPx4SaWMPRPfzEytu+En8PsPjB2tu77PbukLYQwhdBFVG7L4Ys8
+# d7lThEPE570imMLPWs3wr/WjEt8=
 # SIG # End signature block
