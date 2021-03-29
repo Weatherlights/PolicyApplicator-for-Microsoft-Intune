@@ -1,4 +1,20 @@
 ﻿function Write-LogFile {
+<#
+.SYNOPSIS
+    Writes an entry to the log file.
+.DESCRIPTION
+    Writes an entry to the PolicyApplicator Log file in the temporary folder.
+.INPUTS
+    string
+.PARAMETER InputObject
+    The message that should be written to the log file.
+.OUTPUTS
+    bool
+.NOTES
+    Created by Hauke Goetze
+.LINK
+    https://policyapplicator.weatherlights.com
+#>
     param(
         [Parameter(Mandatory=$True)][string]$InputObject
     );
@@ -17,6 +33,26 @@
 }
 
 function Out-RemediatedFile {
+<#
+.SYNOPSIS
+    Writes content to a file.
+.DESCRIPTION
+    Writes a given string content to a file.
+.INPUTS
+    string
+.PARAMETER InputObject
+    The string that should be written to the file.
+.PARAMETER FilePath
+    The path to the file where the content should be written.
+.PARAMETER CreateVerbose
+    If the file does not exist should the file and the residing folders be created.
+.PARAMETER Encoding
+    The encoding of the file.
+.NOTES
+    Created by Hauke Goetze
+.LINK
+    https://policyapplicator.weatherlights.com
+#>
 param(
         [ValidateNotNullOrEmpty()]  
         [ValidateScript({Test-Path $_})]  
@@ -43,6 +79,18 @@ param(
 
 # from https://gist.github.com/zommarin/1480974
 function Get-FileEncoding($Path) {
+<#
+.SYNOPSIS
+    Gets the file encoding of a file.
+.DESCRIPTION
+    Gets the file encoding of a file.
+.OUTPUTS
+    string
+.PARAMETER Path
+    Path to the file from that you want to get the encoding.
+.LINK
+    https://gist.github.com/zommarin/1480974
+#>
     $bytes = [byte[]](Get-Content $Path -Encoding byte -ReadCount 4 -TotalCount 4)
 
     if(!$bytes) { return 'utf8' }
@@ -59,8 +107,8 @@ function Get-FileEncoding($Path) {
 # SIG # Begin signature block
 # MIIWYAYJKoZIhvcNAQcCoIIWUTCCFk0CAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUlizGMEtWIRO8kkm8S1H5PJK/
-# hV+gghBKMIIE3DCCA8SgAwIBAgIRAP5n5PFaJOPGDVR8oCDCdnAwDQYJKoZIhvcN
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUPglxGJGGyWcn/R/OO2ryf7+S
+# ATGgghBKMIIE3DCCA8SgAwIBAgIRAP5n5PFaJOPGDVR8oCDCdnAwDQYJKoZIhvcN
 # AQELBQAwfjELMAkGA1UEBhMCUEwxIjAgBgNVBAoTGVVuaXpldG8gVGVjaG5vbG9n
 # aWVzIFMuQS4xJzAlBgNVBAsTHkNlcnR1bSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0
 # eTEiMCAGA1UEAxMZQ2VydHVtIFRydXN0ZWQgTmV0d29yayBDQTAeFw0xNjAzMDgx
@@ -152,29 +200,29 @@ function Get-FileEncoding($Path) {
 # IExpbWl0ZWQxIzAhBgNVBAMTGkNPTU9ETyBSU0EgQ29kZSBTaWduaW5nIENBAhEA
 # 1COFaExESSMmfunez9AKZDAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAig
 # AoAAoQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgEL
-# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUz6xWjoRQh3ah/OwbM8dL
-# ZiMK8zYwDQYJKoZIhvcNAQEBBQAEggEAVGBJmdnMZu6OsP7OMEwZNmDCTpZhMnoS
-# i6ykLMq1He2EHIEI67enPW97mAV1BTNSgFk1KPFbkm9oGYpqc/IsSHe9R1Fh9o/G
-# 4E0X/AqiqOdFR1jZaEVB7JAi42swNXL2vJhh+EiIpGTdw0dw0eetiatziw8FDINX
-# Y21QqaLnaXNk8522CAE4XLuEurD9H9VgV88zW+itbOTS7gAmiTmtgjqfnSLM7cHf
-# 0ouWxnVggc8hCjXk3RxmPm+EEZX3nueucn0iSrWdYJjXLE9G6UpyCw0U9a3faq92
-# yTdRitwQfVasOxh48+T+hvxwWOCy67X/8emv4q5NBV2j56CNNeHfA6GCA0gwggNE
+# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUw/PiPw2UzXJwA8ZYBQxb
+# WPv5ibswDQYJKoZIhvcNAQEBBQAEggEAf/vWA0FQu83taWb1qrUBz2Rw0tiYkFm9
+# VbB2H/UlHiosFJnUvma9MVkOU/ibbbnL6McqBOVSzzX64YilCY4FuTYzPcpiVokB
+# r6Y2mIy1yUJ9DnDl2Ma3SX9NeC0H1OOxtQ0RrTEkYmUnrhwVYhPX8pAm1XGAAEJe
+# riUNkuNZIBYEpCEtGM4vsNiQ9JwK9hcuguVn9ZrnAg5fx5L2wyybgQjbNDSezxwg
+# ccS6sHCMKZ1QSw+Elyd3igiQ8f2NJeKBvlK5AtxFGDbDwngjZ9u+wtBX9ulF8/Po
+# A4dIx1jJAzeZ1/CNynh1ym02XJy3X5RMXIpbhkUw8k5mIvHt6xCTiqGCA0gwggNE
 # BgkqhkiG9w0BCQYxggM1MIIDMQIBATCBkzB+MQswCQYDVQQGEwJQTDEiMCAGA1UE
 # ChMZVW5pemV0byBUZWNobm9sb2dpZXMgUy5BLjEnMCUGA1UECxMeQ2VydHVtIENl
 # cnRpZmljYXRpb24gQXV0aG9yaXR5MSIwIAYDVQQDExlDZXJ0dW0gVHJ1c3RlZCBO
 # ZXR3b3JrIENBAhEA/mfk8Vok48YNVHygIMJ2cDANBglghkgBZQMEAgEFAKCCAXIw
 # GgYJKoZIhvcNAQkDMQ0GCyqGSIb3DQEJEAEEMBwGCSqGSIb3DQEJBTEPFw0yMTAz
-# MjAxNjIyMDhaMC8GCSqGSIb3DQEJBDEiBCC956Cq9upWFlPBO1/+9KOWGu34xOrg
-# YlnkwMulqil9vTA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCDZyqvDIltwMM24PjhG
+# MjkwNzUxMTlaMC8GCSqGSIb3DQEJBDEiBCDIxVYWWOpeeKbhpVHUydCpp7vSa8Fp
+# eATqDbCO7LvRdzA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCDZyqvDIltwMM24PjhG
 # 42kcFO15CxdkzhtPBDFXiZxcWDCBywYLKoZIhvcNAQkQAgwxgbswgbgwgbUwgbIE
 # FE+NTEgGSUJq74uG1NX8eTLnFC2FMIGZMIGDpIGAMH4xCzAJBgNVBAYTAlBMMSIw
 # IAYDVQQKExlVbml6ZXRvIFRlY2hub2xvZ2llcyBTLkEuMScwJQYDVQQLEx5DZXJ0
 # dW0gQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkxIjAgBgNVBAMTGUNlcnR1bSBUcnVz
 # dGVkIE5ldHdvcmsgQ0ECEQD+Z+TxWiTjxg1UfKAgwnZwMA0GCSqGSIb3DQEBAQUA
-# BIIBAIdUoQfVjGb3u6lC56CFb8J4lQ+d4LnhBezYySCq9LLcFsVaN+YkXr1fApym
-# usZ2aRzGLzfR5cZ9q+HZD++xvN+iK+CFurXRAf0y0fahuJGcbfLjDvTCDwfe8e85
-# fgVMdLIXqSv+CiBqF3bkhLmkNrFL5R+bLj/6hAx8eU3j5MNkjCNIivWa71GAOuhp
-# Y60rHH4vW4FV6X1BEdMA2RzZJTlasfqjsK7PtbRjAnZRcKlNwpz2QergYpvWNs2+
-# CwMPp8JJJkxenj96mhuHzri9/QGYTbeLB7KR1zJkijMuatOQGOtzcbzVip/zkgBZ
-# xbZsucBSWY180jUzmjCxLM5jnOE=
+# BIIBABFHbqQRFOjwIk+ktOyLnCzsYVmaqK6dLpB5kShMgqX8TBMYwja4nATHf62H
+# fJtHMnKDqLjXgw5j8gWlUkzwh46vgsjoCm0pQPgSF15eHWeLkpmDCptmiz0SNkhf
+# YS1lbvU03g36JCw1vf7MZprWdiQQccQiQWquwP6MgpSv0Zurvu8TeP4mYPSB5tIH
+# zcTzgFuqsleajY2/3y1mu2yBO+Oa0Tcb5qoK1q9J6xFhdZckcUhQfiFjZGXRQbcU
+# 7DvzHNmoWP42IoJHtsYfY0WS7CPdBizankPHq6u+UXqg2d4ArALa5+pzJBn6Vks2
+# 01wur1KveHiAPzwpySPbWKpocj8=
 # SIG # End signature block
