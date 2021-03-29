@@ -27,3 +27,6 @@ So there are 5 steps:
 
 ## Demo
 Checkout this video on Youtube: [PolicyApplicator Demo](https://www.youtube.com/watch?v=M_W8YJvuZQ4)
+
+## Documentation
+Can be found in the <a href="https://github.com/Weatherlights/PolicyApplicator-for-Microsoft-Intune/wiki">Wiki</a>.
