@@ -103,7 +103,10 @@ $omaConfigFile = [PSCustomObject]@{
     "@odata.type" = "#microsoft.graph.omaSettingString";
     "displayName" = $AppName+': '+ $AppPolicyName +" File configuration";
     "description" = ""
-    "value" = "<enabled/><data id=`"$AppName-$cleanAppPolicyName-File-path`" value=`"$outFilePath`"/><data id=`"$AppName-$cleanAppPolicyName-File-operation`" value=`"create`"/><data id=`"$AppName-$cleanAppPolicyName-File-encoding`" value=`"$encoding`"/>";
+    "value" = "<enabled/>
+<data id=`"$AppName-$cleanAppPolicyName-File-path`" value=`"$outFilePath`"/>
+<data id=`"$AppName-$cleanAppPolicyName-File-operation`" value=`"create`"/>
+<data id=`"$AppName-$cleanAppPolicyName-File-encoding`" value=`"$encoding`"/>";
     "omauri" = $omaConfigFileUri;
 };
 
@@ -126,7 +129,9 @@ $dataValueList = $dataValueLIst -replace "&#xF000;$","";
 
 $policyOMAURI ="$OMABASE$AppName~Policy~$cleanAppPolicyName/$policyName"
 
-$configuredValue = '<enabled/><data id="'+$policyName+'-operation" value="Replace"/><data id="'+$policyName+'-list" value="'+$dataValueList+'"/>';
+$configuredValue = '<enabled/>
+<data id="'+$policyName+'-list" value="'+$dataValueList+'"/>
+<data id="'+$policyName+'-operation" value="Replace"/>';
 
 $omaConfig = [PSCustomObject]@{
     "@odata.type" = "#microsoft.graph.omaSettingString";
@@ -157,8 +162,8 @@ $omaConfigs | Select-Object -Property displayName,description,omauri,value | Exp
 # SIG # Begin signature block
 # MIIWYAYJKoZIhvcNAQcCoIIWUTCCFk0CAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUXSHehsOF+cGouus9FhDrluNc
-# xAmgghBKMIIE3DCCA8SgAwIBAgIRAP5n5PFaJOPGDVR8oCDCdnAwDQYJKoZIhvcN
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU7dfoKiH3xV44rGS3iMHTdLNF
+# kBqgghBKMIIE3DCCA8SgAwIBAgIRAP5n5PFaJOPGDVR8oCDCdnAwDQYJKoZIhvcN
 # AQELBQAwfjELMAkGA1UEBhMCUEwxIjAgBgNVBAoTGVVuaXpldG8gVGVjaG5vbG9n
 # aWVzIFMuQS4xJzAlBgNVBAsTHkNlcnR1bSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0
 # eTEiMCAGA1UEAxMZQ2VydHVtIFRydXN0ZWQgTmV0d29yayBDQTAeFw0xNjAzMDgx
@@ -250,29 +255,29 @@ $omaConfigs | Select-Object -Property displayName,description,omauri,value | Exp
 # IExpbWl0ZWQxIzAhBgNVBAMTGkNPTU9ETyBSU0EgQ29kZSBTaWduaW5nIENBAhEA
 # 1COFaExESSMmfunez9AKZDAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAig
 # AoAAoQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgEL
-# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUEGhsWw/WXye+5FI7VTg0
-# SKqZ0g8wDQYJKoZIhvcNAQEBBQAEggEABrflTdT8FxGsPRn8bSDXzYGarQdqnW5X
-# 6QmdgHCxpQ85dgiP6Xh9GUbQXnQSXiaeFM3XEENEWbrfUtAuh2RrJqnpMetQyJG/
-# BVS3sF/apwAqabiBJ1Kn4TOu2olnoKgysnxQqCgvxswh6ycKvHG/FVVAZKGZRkGZ
-# pZ1L+U6WQDZL1bMhIMjH0A5Dd33EVYIETXAXFwDw1Z/st25IZFm95pWCknt5KeDf
-# Jxcu63HF0PLQHNkqilMf7K6r5V0eBcdI5CozYiMOMRRHOWx7bPlOV0LUtHn3Fo6W
-# pAPyB3e6QGAB8mTw4US478lsI+4B927p3XzdEzQ33g1QUSpL0MLq+KGCA0gwggNE
+# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUa8rzYjEcr3AcbmtoWDuc
+# l+gBrbowDQYJKoZIhvcNAQEBBQAEggEANgj+RMJMPrm6a8gozDzXTM+hNltrd7xn
+# i1TjUVDNMORdB07EV3x3jBogzpHZKDIbRUp8tVdXgfF/nDGWTaBd+xs4QPlXXEz/
+# 1w4E52VAFtR60Fm4aRkLpwmYj55mQm4pXOIWKif5gvgGOI7U3QuTAsBaiJeyhbHU
+# fLixGlU0qX8gWFh+Lr6I1RybrEo99jd+6KgwoV3XEcwo9oF1yEymxpEKInBnnVYJ
+# fp4XloEciexc5i1+6yqEd9eupB0EnL1RKkh1ue6y+g+1+j2//v4bOrlRCxOp3rmu
+# +N6hz58smnGg7RtEXuumq0cPPdAG6xIu1HLE/24etaqCqfCwkgqPlqGCA0gwggNE
 # BgkqhkiG9w0BCQYxggM1MIIDMQIBATCBkzB+MQswCQYDVQQGEwJQTDEiMCAGA1UE
 # ChMZVW5pemV0byBUZWNobm9sb2dpZXMgUy5BLjEnMCUGA1UECxMeQ2VydHVtIENl
 # cnRpZmljYXRpb24gQXV0aG9yaXR5MSIwIAYDVQQDExlDZXJ0dW0gVHJ1c3RlZCBO
 # ZXR3b3JrIENBAhEA/mfk8Vok48YNVHygIMJ2cDANBglghkgBZQMEAgEFAKCCAXIw
 # GgYJKoZIhvcNAQkDMQ0GCyqGSIb3DQEJEAEEMBwGCSqGSIb3DQEJBTEPFw0yMTAz
-# MjYwODU0MDNaMC8GCSqGSIb3DQEJBDEiBCDDKFHex8QpDkBkhS/mMfEWkcXM2VPq
-# WEVS3Fgo79X2WTA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCDZyqvDIltwMM24PjhG
+# MjkxMjA2MjFaMC8GCSqGSIb3DQEJBDEiBCBs+ViNf8v39w705hyOzp3c0YF8yU5H
+# IWQphXsKwVoGPjA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCDZyqvDIltwMM24PjhG
 # 42kcFO15CxdkzhtPBDFXiZxcWDCBywYLKoZIhvcNAQkQAgwxgbswgbgwgbUwgbIE
 # FE+NTEgGSUJq74uG1NX8eTLnFC2FMIGZMIGDpIGAMH4xCzAJBgNVBAYTAlBMMSIw
 # IAYDVQQKExlVbml6ZXRvIFRlY2hub2xvZ2llcyBTLkEuMScwJQYDVQQLEx5DZXJ0
 # dW0gQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkxIjAgBgNVBAMTGUNlcnR1bSBUcnVz
 # dGVkIE5ldHdvcmsgQ0ECEQD+Z+TxWiTjxg1UfKAgwnZwMA0GCSqGSIb3DQEBAQUA
-# BIIBAA+Il90kaK4xr0jSoHESxJkId/2zU+AKQmz4o3kzGtbyQol+fRf8oNkepI71
-# G6nMbaygOOJfQJX9wqQKAU4oDnHNexR4Zi/OLlPPW32EKaWBgOoYWiuOH9YmDfxz
-# ac6JrsxvcaNTR05caE+UOk+L7ZkJe4PalNJfXw02BiirNamAWp+bsosN7fTmjcRo
-# QwzcyOdkOg8ZkhGaHYy1IcLJwGlIk7hBvjSCZ9jKyams0779S/psM0IPy/V2oXhM
-# YTGkcHK8S+IMaY47UAKW7sNdeVYcF1KIJvuRrl3FaEaUAWpw0r9GajF2ZfOxTLUR
-# 0IlHSPps0NSFimfxI8zo+6Ym0VM=
+# BIIBAJ7RU/K2ANzDqWG7/w2Qb8bE7Kes02lZ2I4qBFQ9M09acBTzAH8fuWmtP6to
+# TlThdRiSJnybZtStUaS0XjbfHYCjcw+mQKeo9kj4eE39/qylXMQxpMEnLvoVvHcX
+# XsGqAG/tE2h8fTRs7rmjKTEQS84gSJ1VzblAcBbifwdsgkqsfvuNUfvoHXnHzghI
+# /PsEvRNV54asLhCVn/AJWUZxusFVjNJhz87dwq3YodYuyqEjuU+T+TZeEQ7patyE
+# TzvHw7j5tPQG/lYArD10a3LcyT1Ex0UnWUWcdocDsGEgLe15V+LsBADL+4oxIFFq
+# 5bPLP8VwyFaWr3ooP3+4XEWoqFQ=
 # SIG # End signature block

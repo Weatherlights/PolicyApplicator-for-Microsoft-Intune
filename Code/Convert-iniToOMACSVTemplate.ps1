@@ -100,7 +100,10 @@ $omaConfigFile = [PSCustomObject]@{
     "@odata.type" = "#microsoft.graph.omaSettingString";
     "displayName" = $AppName+': '+ $AppPolicyName +" File configuration";
     "description" = ""
-    "value" = "<enabled/><data id=`"$cleanAppName-$cleanAppPolicyName-File-path`" value=`"$outFilePath`"/><data id=`"$cleanAppName-$cleanAppPolicyName-File-operation`" value=`"create`"/><data id=`"$cleanAppName-$cleanAppPolicyName-File-encoding`" value=`"$encoding`"/>";
+    "value" = "<enabled/>
+<data id=`"$cleanAppName-$cleanAppPolicyName-File-path`" value=`"$outFilePath`"/>
+<data id=`"$cleanAppName-$cleanAppPolicyName-File-operation`" value=`"create`"/>
+<data id=`"$cleanAppName-$cleanAppPolicyName-File-encoding`" value=`"$encoding`"/>";
     "omauri" = $omaConfigFileUri;
 };
 
@@ -132,7 +135,11 @@ ForEach ( $sectionname in $iniSectionKeys ) {
         $fullomauri = "$omaattributebase/$policyName"
 
 
-        $configuredvalue = "<enabled/><data id=`"$PolicyName-operation`" value=`"$Operation`"/><data id=`"$PolicyName-value`" value=`"$value`"/><data id=`"$PolicyName-section`" value=`"$sectionname`"/><data id=`"$PolicyName-key`" value=`"$keyname`"/>"
+        $configuredvalue = "<enabled/>
+<data id=`"$PolicyName-value`" value=`"$value`"/>
+<data id=`"$PolicyName-operation`" value=`"$Operation`"/>
+<data id=`"$PolicyName-section`" value=`"$sectionname`"/>
+<data id=`"$PolicyName-key`" value=`"$keyname`"/>"
 
         # Define an intune custom profile element.
         $omaConfig = [PSCustomObject]@{
@@ -172,8 +179,8 @@ $omaConfigs | Select-Object -Property displayName,description,omauri,value | Exp
 # SIG # Begin signature block
 # MIIWYAYJKoZIhvcNAQcCoIIWUTCCFk0CAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU1jq1TFyAeJ5OJm6q6Geni2DW
-# qTCgghBKMIIE3DCCA8SgAwIBAgIRAP5n5PFaJOPGDVR8oCDCdnAwDQYJKoZIhvcN
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUikemMECAsalq5UeF3ZgVYZr0
+# QVagghBKMIIE3DCCA8SgAwIBAgIRAP5n5PFaJOPGDVR8oCDCdnAwDQYJKoZIhvcN
 # AQELBQAwfjELMAkGA1UEBhMCUEwxIjAgBgNVBAoTGVVuaXpldG8gVGVjaG5vbG9n
 # aWVzIFMuQS4xJzAlBgNVBAsTHkNlcnR1bSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0
 # eTEiMCAGA1UEAxMZQ2VydHVtIFRydXN0ZWQgTmV0d29yayBDQTAeFw0xNjAzMDgx
@@ -265,29 +272,29 @@ $omaConfigs | Select-Object -Property displayName,description,omauri,value | Exp
 # IExpbWl0ZWQxIzAhBgNVBAMTGkNPTU9ETyBSU0EgQ29kZSBTaWduaW5nIENBAhEA
 # 1COFaExESSMmfunez9AKZDAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAig
 # AoAAoQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgEL
-# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUNnyucKM3+Y0sy40JqKbP
-# jISiKV4wDQYJKoZIhvcNAQEBBQAEggEAjZ8qjtf/RLmyQvko/6kpZOTaeDj0HyWW
-# aJ3WnbeWVW5ecCtx2jnl8H6t1/prSczT2yqp0jtGXflEdgsSbwOJd4C10qsZZ9Ry
-# Hq4WE2qsr1d/2Q7G54nlfJsQ8DSHnn50haMhxo5hEBvTjlUMxs5M4NCBRYKnggmX
-# gAi8V6w70KMKp5VimSwOJYBf/M+8TcD2qMdPZheXd9S1JL7sK5udwOGKvWaSg1PG
-# hsq/9vJVA41EZOFTEPJRZlDsrxfwRDMn1/20CPVVrJJ1qkFEfmvV6nsNH4GC5NPx
-# 6Gj7SeJTkS7mKF4+gaGTDP69TrOg9DVHYgs12PbhMkx81dd1SFCLf6GCA0gwggNE
+# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUZc9/SBcQ1KSk4GucbG/l
+# W3OzOfIwDQYJKoZIhvcNAQEBBQAEggEAiBKG4sQykWndxCy7TGJzdRUZ53p7LErc
+# Zh2HhfbwOdlbDDyKXOHtgUm6CtRHTYpxF65JtFkIMuJawNGhGVi8YdFXWDZHPaXN
+# /kMCz35x7vKLXaYPQ1rIE3NZLufJEHE25hDr3cQa8HapSha2pLJ1GqdNDdD01vaw
+# TFUcoNmUeBV6lAZ6690aoLeoCDXW02O2IMGVNBNIvn3uZ1O++UO4MyoL6zZPC5xa
+# bvk6h31vfP32qPet1O8Juqi75Mx2f+SoUKRfSjbjNGUAz3lKmYPfoLFlOWIi4UnZ
+# 7jnnD6f8AsN5FeOrYBryXu9IXaEnnXlyUKBS+Lp6bynbdqj85vxJeaGCA0gwggNE
 # BgkqhkiG9w0BCQYxggM1MIIDMQIBATCBkzB+MQswCQYDVQQGEwJQTDEiMCAGA1UE
 # ChMZVW5pemV0byBUZWNobm9sb2dpZXMgUy5BLjEnMCUGA1UECxMeQ2VydHVtIENl
 # cnRpZmljYXRpb24gQXV0aG9yaXR5MSIwIAYDVQQDExlDZXJ0dW0gVHJ1c3RlZCBO
 # ZXR3b3JrIENBAhEA/mfk8Vok48YNVHygIMJ2cDANBglghkgBZQMEAgEFAKCCAXIw
 # GgYJKoZIhvcNAQkDMQ0GCyqGSIb3DQEJEAEEMBwGCSqGSIb3DQEJBTEPFw0yMTAz
-# MjYwODU0MDJaMC8GCSqGSIb3DQEJBDEiBCDG7sctzAGjcKcVM7NsqBiwmtm98bWx
-# JI96Iwktuyx55zA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCDZyqvDIltwMM24PjhG
+# MjkxMjA2MjFaMC8GCSqGSIb3DQEJBDEiBCBMsz9qzTpufeXJ7r0i8KyvSJLzS/qq
+# ak6y2PFQsIh+xzA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCDZyqvDIltwMM24PjhG
 # 42kcFO15CxdkzhtPBDFXiZxcWDCBywYLKoZIhvcNAQkQAgwxgbswgbgwgbUwgbIE
 # FE+NTEgGSUJq74uG1NX8eTLnFC2FMIGZMIGDpIGAMH4xCzAJBgNVBAYTAlBMMSIw
 # IAYDVQQKExlVbml6ZXRvIFRlY2hub2xvZ2llcyBTLkEuMScwJQYDVQQLEx5DZXJ0
 # dW0gQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkxIjAgBgNVBAMTGUNlcnR1bSBUcnVz
 # dGVkIE5ldHdvcmsgQ0ECEQD+Z+TxWiTjxg1UfKAgwnZwMA0GCSqGSIb3DQEBAQUA
-# BIIBAKefM0q1FeQQB/s30mK/E2cWwWVuYcabrCcflGva/TJzQhim2P42xDjvpmgt
-# E76AmAcIUSNs0aLLUlZGJONd5Ts5ptHYYigv800DA4L0AfAUH76XK3WhiYimV7+O
-# +sUIuQFCncsO6qQe3BhD7oU1Oxwh9sH/AeREvawuo2JTULPGlGSoZMCK8wzsVWyh
-# 13shfwq4PehIq9W3u8A+NfLGvXgfhLvtgQ2tsiVHcmThUrkLWt+/5stD/34L1qGc
-# l7HmmnszlUOA7POvrJ7SUM7rq7fos8iSMMHgq2R2FEyABmua6ElXb/5Maq640T3p
-# uMM0IBR6n+J2c2jJg3kzBX+dnFM=
+# BIIBAJ3yQD4Txj1z6iNRqQedeUgExs/hhasbFgsKMWVhQrJpfkGBoAFV+ZQFGI6U
+# 3OAUHCAUrUb0NhjHqafXhKs/vZft4UhERuwS6JxJvGa5+TGcc17TjlHZPbkKAxxm
+# qUEk00pNqdMYxvkdh6Z8gmlVB4NaD2JvlB2fVcS94RSn23U796ilvqv/LTV3nBuF
+# UX3jZ40TZf23vomkXCrd/GaRTdZXTt1H8Gj/vqukfKj4pCzNQ6aOUuF8o4Qggixq
+# p8JtdF6k1xQ2MhOvTPkrMheDuZsWohjUyUUIjNKosVseR9gxHL2b29mKGRmO1sXC
+# CIkK2RHNgErRqmBXJkNGPqU1Sc8=
 # SIG # End signature block
