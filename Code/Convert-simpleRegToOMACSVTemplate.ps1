@@ -24,7 +24,7 @@
         Specify a filename where you would like to save the intune policy for later upload. 
                   
     .Example  
-        .\Convert-SimpleRegToOMACSVTemplate.ps1 -RegistryPath "HKLM:\SOFTWARE\MyApp" -AppName "myApp" AppPolicyName "myConfig" -OutputFilePath "c:\myIntuneReadyConfig.csv"  
+        .\Convert-SimpleRegToOMACSVTemplate.ps1 -RegistryPath "HKLM:\SOFTWARE\MyApp" -AppName "myApp" -AppPolicyName "myConfig" -OutputFilePath "c:\myIntuneReadyConfig.csv"  
         -----------  
         Description  
         Takes all values from the registry key HKLM:\SOFTWARE\MyApp and captures them in the csv file.
