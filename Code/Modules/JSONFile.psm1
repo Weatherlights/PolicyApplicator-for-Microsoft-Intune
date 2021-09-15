@@ -69,8 +69,11 @@ $parsed = Invoke-ParseJSonStructure -InputObject $sj
 
 function Set-JSonNodeByJPPath {
     param(
-        [string]$Path,
+        [Parameter(Mandatory=$True)][string]$Path, 
         [string]$Value,
+        [ValidateSet("Create","Update", "Replace", "Delete")]  
+        [Parameter(Mandatory=$True)]
+        [ValidateNotNullOrEmpty()][string]$Operation,  
         $InputObject
     )
     $Path = $Path -replace "^/", "";
@@ -81,7 +84,18 @@ function Set-JSonNodeByJPPath {
     if ( !$InputObject ) {
         $NodeName, $NodeType = $Nodes[0] -split ":";
         Write-Host $NodeType
-        $InputObject = New-JSonNode $NodeType;
+        switch ( $NodeType ) {
+            "PSCustomObject"  {
+                  $InputObject = @{};
+             }
+             "Object[]" {
+                $InputObject = [System.Collections.ArrayList]@($null,$null)
+                    #$CurrentObject[$NodeName] = @($null,$null)
+             }
+             default {
+                return $Value;
+             }
+         }
     }
 
     $CurrentObject = $InputObject;
@@ -99,39 +113,55 @@ function Set-JSonNodeByJPPath {
 
 
         if ( !$CurrentObject[$NodeName] ) {
-       
-            Write-Host "Modifing PSCUstomObject";
+            if  ( $Operation -eq "Create" -or $Operation -eq "Replace" ) {
+                Write-Host "Modifing PSCUstomObject";
 
-            if ( $CurrentObject.GetType().Name -eq "ArrayList" ) {
+                if ( $CurrentObject.GetType().Name -eq "ArrayList" ) {
                 
                 
-                Write-Host "Modifing Object[]:";
-                while ( $CurrentObject.Count -le $NodeName ) {
-                    $CurrentObject.Add($null) | Out-Null
-                }
+                    Write-Host "Modifing Object[]:";
+                    while ( $CurrentObject.Count -le $NodeName ) {
+                        $CurrentObject.Add($null) | Out-Null
+                    }
                     
-            }
-            switch ( $NodeType ) {
-                "PSCustomObject"  {
-                    $CurrentObject[$NodeName] = @{};
                 }
-                "Object[]" {
-                    $CurrentObject[$NodeName] = [System.Collections.ArrayList]@($null,$null)
+                switch ( $NodeType ) {
+                    "PSCustomObject"  {
+                        $CurrentObject[$NodeName] = @{};
+                    }
+                    "Object[]" {
+                        $CurrentObject[$NodeName] = [System.Collections.ArrayList]@()
                     #$CurrentObject[$NodeName] = @($null,$null)
+                    }
+                    default {
+                        $CurrentObject[$NodeName] = "";
+                    }
                 }
-                default {
-                    $CurrentObject[$NodeName] = "";
-                }
-            }
 
             Write-Host (ConvertTo-Json $CurrentObject);
-            
+            } else {
+                return $InputObject;
+            }
         }
         $CurrentObject = $CurrentObject[$NodeName];
     }
     $NodeName, $NodeType = $Nodes[$i-1] -split ":";
     Write-Host "Setting Value $i - $NodeName $ObjectToSet";
-    $ObjectToSet.$NodeName = $Value;
+    if ( $Operation -eq "Delete" ) {
+        Write-Host "Removal of $NodeName"
+        switch ( $objecttoset.GetType().Name ) {
+            "ArrayList" {
+                
+                $ObjectToSet.RemoveAt($NodeName);
+            } default {
+                $ObjectToSet.Remove($NodeName);
+            }
+        }
+    } else {
+        if ( !$ObjectToSet.$NodeName -or $Operation -eq "Replace" -or $Operation -eq "Update" ) { 
+            $ObjectToSet.$NodeName = $Value;
+        }
+    }
     return $InputObject
 }
 
@@ -139,6 +169,11 @@ ForEach ( $parse in $parsed ) {
     $s1=Set-JSonNodeByJPPath -Path $parse.Path -Value $parse.Value -InputObject $s1
 }
 
-$s1=Set-JSonNodeByJPPath -Path "/:PSCustomObject/Value21:Object[]/4:Object[]/3:PSCustomObject/Value1.3:String" -Value "Reset"
-$s1=Set-JSonNodeByJPPath -Path "/:PSCustomObject/Value21:Object[]/4:Object[]/2:PSCustomObject/Value1.3:String" -Value "Reset" -InputObject $s1
+$s1=Set-JSonNodeByJPPath -Path "/:PSCustomObject/Value21:Object[]/4:Object[]/3:PSCustomObject/Value1.3:String" -Value "Reset" -Operation Create
+$s1=Set-JSonNodeByJPPath -Path "/:PSCustomObject/Value21:Object[]/4:Object[]/2:PSCustomObject/Value1.3:String" -Value "Reset" -InputObject $s1 -Operation Create
 ConvertTo-Json $s1 -Depth 100;
+$s1=Set-JSonNodeByJPPath -Path "/:PSCustomObject/Value21:Object[]/4:Object[]/2:PSCustomObject" -InputObject $s1 -Operation Delete
+
+$asasP=@{
+"hi" = "ho";
+ 1=2}
