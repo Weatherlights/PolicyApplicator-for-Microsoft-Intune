@@ -1,179 +1,198 @@
-﻿##### UNDER DEVELOPMENT!!!! Not for productive use !!! ####
-# State: Proof of Concept 
-
-$OBJECT_NODE_NAME = "PSCustomObject";
-$ARRAY_NODE_NAME = "Object[]";
-$STRING_NODE_NAME = "String";
-$INT_NODE_NAME = "Int32";
-
-
-function Invoke-ParseObjectStructure {
-    param(
-        $InputObject,
-        $CurrentPath
-    )
-    $OutValue = "";
-    $DataType = $InputObject.GetType().Name;
-    $CurrentPath += ":$DataType"
-    switch ( $InputObject.GetType().Name ) {
-       "Object[]" {
-            For ( $i = 0; $i -lt $InputObject.Count; $i++ ) {
-                $NewPath = "$CurrentPath/$i";
-                Invoke-ParseObjectStructure -InputObject $InputObject[$i] -CurrentPath $NewPath -Elements $Elements
-            }
-            
-        }
-        "PSCustomObject" {
-            ForEach ( $noteProperty in (Get-Member -InputObject $InputObject | WHERE { $_.MemberType -eq "NoteProperty"} ) ) {           
-                $notePropertyName = $noteProperty.Name
-                $NewPath = "$CurrentPath/$notePropertyName";
-                Invoke-ParseObjectStructure -InputObject $InputObject.$notePropertyName -CurrentPath $NewPath -Elements $Elements;
-            }
-        } default {
+﻿    <#  
+    .Synopsis  
+        Converts a target json file into a csv file that can be imported to intune  
           
-            @{
-                "Path" = $CurrentPath;
-                "Value" = $InputObject
-            };
+    .Description  
+        Converts a target json file into a csv file that can be imported to intune  
+          
+    .Notes  
+        Author        : Hauke Goetze (hauke@hauke.us)
+        Version        : 1.0 - 2021/09/17 - Initial release  
+          
+          
+    .Parameter FilePath  
+        The path to the json file you would like to prepare for intune. 
+          
+    .Parameter PathOnTargetSystem  
+        The path of the file on the target system. You may use system variables here. Mark your variables like %NAME%.
+  
+    .Parameter AppName  
+        The name of the app your file belongs to.
+       
+     .Parameter AppPolicyName  
+        A name for the policy you want to create.
+       
+     .Parameter Context  
+        Specify wether the policy is applied in Machine or User context.
+
+     .Parameter Operation
+        Defines how the PolicyApplicator Agent will apply the configuration on the system. If you don't know what to do here just ignore it.
+          
+     .Parameter OutputFilePath  
+        Specify a filename where you would like to save the intune policy for later upload. 
+                  
+    .Example  
+        .\Convert-JSONToOMACSVTemplate.ps1 -FilePath "C:\myApp\myConfig.json" -PathOnTargetSystem "%SYSTEMDRIVE%\myApp\myConfig.json" -AppName "myApp" AppPolicyName "myConfig" -Context "Machine" -OutputFilePath "c:\myIntuneReadyConfig.csv"  
+        -----------  
+        Description  
+        Converts the file c:\myApp\myConfig.json into c:\myIntuneReadyConfig.csv. You can upload the csv file later and deploy it using Intune. The policy will be applied as SYSTEM user.
+    #>  
+param(
+    [ValidateNotNullOrEmpty()]  
+    [ValidateScript({Test-Path $_})]  
+    [Parameter(ValueFromPipeline=$True,Mandatory=$True)]  
+    [string]$FilePath,
+
+    [Parameter(Mandatory=$True)][string]$PathOnTargetSystem,
+
+    [Parameter(Mandatory=$True)][string]$AppName,
+    [Parameter(Mandatory=$True)][string]$AppPolicyName,
+
+    [ValidateSet("User","Machine")]$Context,
+    [ValidateSet("Create", "Update", "Replace", "Delete")]$Operation = "Replace",
+
+    [Parameter(Mandatory=$True)][string]$OutputFilePath
+);
+
+
+$AppDir = $MyInvocation.MyCommand.Path
+
+$modulesToLoad = Get-ChildItem -Path "$AppDir\..\Modules";
+ForEach ( $module in $modulesToLoad ) {
+    Import-Module $module.FullName;
+}
+
+
+$jsonFileContent = Get-Content $FilePath;
+
+$jsonPathsToConfigure = Invoke-ParseJSonStructure -InputObject $jsonFileContent
+
+$Class = "User";
+if ( $Context -eq "Machine" ) {
+    $Class = "Device";
+}
+
+
+$cleanAppPolicyName = ConvertTo-ADMXCompatibleName $AppPolicyName;
+
+$outfilePath
+if ( $PathOnTargetSystem ) {
+    $outfilePath = $PathOnTargetSystem
+} else {
+    $outfilePath = $FilePath;
+}
+
+$regkey = Get-PolicyRegistryKey -AppName $AppName -AppPolicyName $cleanAppPolicyName
+
+$categories = '<category name="'+$cleanAppPolicyName+'" displayName="$(string.Nothing)" />';
+$categoriesMap = @{};
+$policyMap = @();
+
+for ( $i=0; $i -lt $jsonPathsToConfigure.Count; $i++ ) {
+    $jsonPathToConfigure = $jsonPathsToConfigure[$i];
+    
+    $nodes = $jsonPathToConfigure.Path -split "/";
+    $nodesToIgnore = 1;
+    
+    $displayName = "";
+    For ($j = 1; $j -le $nodes.Count-$nodesToIgnore; $j++ ) {
+        $nodeDisplayName = $nodes[$j] -replace ":.*", ""; 
+        if ( $nodes[$j-1] -match "\:Object\[\]" ) {
+            $displayName += "[$nodeDisplayName]";
+        } else {
+            $displayName += "/$nodeDisplayName";
         }
-
-   }
-}
-
-function Invoke-ParseJSonStructure {
-<#
-.SYNOPSIS
-    Parses a JSON string into a path like structure
-.DESCRIPTION
-    This function parses a JSON object into a path like structure that can be reassembled with the Set-JSonNodeByJsonPath
-.PARAMETER InputObject
-    The JSON string you want to translate
-.OUTPUTS
-    Object[]
-.NOTES
-    Created by Hauke Goetze
-.LINK
-    https://policyapplicator.weatherlights.com
-#>
-    param(
-        [string]$InputObject
-    )
-
-    $object = ConvertFrom-Json $InputObject
-
-    $Elements = Invoke-ParseObjectStructure -InputObject $object -CurrentPath "/";
-
-    return $Elements
-
-}
-
-
-function Set-JSonNodeByJsonPath {
-    param(
-        [Parameter(Mandatory=$True)][string]$Path, 
-        [string]$Value,
-        [ValidateSet("Create","Update", "Replace", "Delete")]  
-        [Parameter(Mandatory=$True)]
-        [ValidateNotNullOrEmpty()][string]$Operation,  
-        $InputObject
-    )
-    $Path = $Path -replace "^/", "";
-    $Nodes = $Path -split "/";
-
-    Write-Host $Path
-
-    if ( !$InputObject ) {
-        $NodeName, $NodeType = $Nodes[0] -split ":";
-        Write-Host $NodeType
-        switch ( $NodeType ) {
-            "PSCustomObject"  {
-                  $InputObject = @{};
-             }
-             "Object[]" {
-                $InputObject = [System.Collections.ArrayList]@($null,$null)
-             }
-             default {
-                return $Value;
-             }
-         }
+        
     }
 
-    $CurrentObject = $InputObject;
-    $ObjectToSet = $null;
+    $displayName = $displayName -replace "^/",""
 
+    $policyFullName = "$AppName-$cleanAppPolicyName-$i";
+    $policy = @{
+        "PolicyCategoryName" = $cleanAppPolicyName;
+        "PolicyName" = $policyFullName
+        "PolicyDisplayName" = $displayName;
+        "jsonPath" = $jsonPathToConfigure.Path;
+        "Operation" = $Operation
+        "Value" = $jsonPathToConfigure.Value;
+    };
+    $policyMap += $policy;
 
-
-
-    For ( $i = 1; $i -lt $Nodes.Count; $i++ ) {
-        $NodeName, $NodeType = $Nodes[$i] -split ":";
-        $ObjectToSet = $CurrentObject;
-
-        Write-Host "CurrentObject: $NodeName - $CurrentObject"
-        Write-Host $CurrentObject.GetType().Name
-
-
-        if ( !$CurrentObject[$NodeName] ) {
-            if  ( $Operation -eq "Create" -or $Operation -eq "Replace" ) {
-                Write-Host "Modifing PSCUstomObject";
-
-                if ( $CurrentObject.GetType().Name -eq "ArrayList" ) {
-                
-                
-                    Write-Host "Modifing Object[]:";
-                    while ( $CurrentObject.Count -le $NodeName ) {
-                        $CurrentObject.Add($null) | Out-Null
-                    }
-                    
-                }
-                switch ( $NodeType ) {
-                    "PSCustomObject"  {
-                        $CurrentObject[$NodeName] = @{};
-                    }
-                    "Object[]" {
-                        $CurrentObject[$NodeName] = [System.Collections.ArrayList]@()
-                    }
-                    default {
-                        $CurrentObject[$NodeName] = "";
-                    }
-                }
-
-            Write-Host (ConvertTo-Json $CurrentObject);
-            } else {
-                return $InputObject;
-            }
-        }
-        $CurrentObject = $CurrentObject[$NodeName];
-    }
-    $NodeName, $NodeType = $Nodes[$i-1] -split ":";
-    Write-Host "Setting Value $i - $NodeName $ObjectToSet";
-    if ( $Operation -eq "Delete" ) {
-        Write-Host "Removal of $NodeName"
-        switch ( $objecttoset.GetType().Name ) {
-            "ArrayList" {
-                
-                $ObjectToSet.RemoveAt($NodeName);
-            } default {
-                $ObjectToSet.Remove($NodeName);
-            }
-        }
-    } else {
-        if ( !$ObjectToSet.$NodeName -or $Operation -eq "Replace" -or $Operation -eq "Update" ) { 
-            $ObjectToSet.$NodeName = $Value;
-        }
-    }
-    return $InputObject
 }
 
-ForEach ( $parse in $parsed ) {
-    $s1=Set-JSonNodeByJPPath -Path $parse.Path -Value $parse.Value -InputObject $s1
+$OMABASE = "./$Class/Vendor/MSFT/Policy/Config/"
+$OMASETUP = "./Vendor/MSFT/Policy/ConfigOperations/ADMXInstall/$AppName/Policy/$AppName`_$cleanAppPolicyName"
+
+
+$omaConfigs = @();
+$omaConfigs += @{};
+
+$encoding = Get-FileEncoding -Path $FilePath
+
+$omaConfigFileUri = "$OMABASE$AppName~Policy~$cleanAppPolicyName/$AppName-$cleanAppPolicyName-File"
+
+$omaConfigFile = [PSCustomObject]@{
+    "@odata.type" = "#microsoft.graph.omaSettingString";
+    "displayName" = $AppName+': '+ $cleanAppPolicyName +" File configuration";
+    "description" = ""
+    "value" = "<enabled/><data id=`"$AppName-$cleanAppPolicyName-File-path`" value=`"$outFilePath`"/><data id=`"$AppName-$cleanAppPolicyName-File-operation`" value=`"create`"/><data id=`"$AppName-$cleanAppPolicyName-File-encoding`" value=`"$encoding`"/>";
+    "omauri" = $omaConfigFileUri;
+};
+
+$omaConfigs += $omaConfigFile;
+$policies = "";
+
+For ( $i = 0; $i -lt $policyMap.count; $i++ ) {
+
+    ##### Build OMA-DM Information ####
+    $policyCategoryName = ConvertTo-ADMXCompatibleName $policyMap[$i].PolicyCategoryName;
+    $policyName = ConvertTo-ADMXCompatibleName $policyMap[$i].PolicyName;
+    $policyValue = $policyMap[$i].Value;
+    $policyOperation = $policyMap[$i].Operation;
+    $policyjsonPath = $policyMap[$i].jsonPath;
+
+    $policy = Get-ADMXPolicyForJson -PolicyName $policyName -CategoryName $policyCategoryName -Class $Context -Key "$regkey\$i"
+    $policies += $policy;
+    
+    $policyOMAURI ="$OMABASE$AppName~Policy~$policyCategoryName/$policyName"
+   
+    $configuredValue = '<enabled/>
+<data id="'+$policyName+'-value" value="'+$policyValue+'"/>
+<data id="'+$policyName+'-operation" value="'+$policyOperation+'"/>
+<data id="'+$policyName+'-jsonpath" value="'+$policyjsonPath+'"/>'
+
+     $omaConfig = [PSCustomObject]@{
+            "@odata.type" = "#microsoft.graph.omaSettingString";
+            "displayName" = $policyMap[$i].PolicyDisplayName;
+            "description" = ""
+            "value" = $configuredValue;
+            "omauri" = $policyOMAURI;
+       };
+
+       $omaConfigs += $omaConfig;
 }
 
-# Set-AuthenticodeSignature "C:\Users\hauke\GitHub\PolicyApplicator-for-Microsoft-Intune\Code\Modules\JSONFile.psm1" @(Get-ChildItem cert:\CurrentUser\My -codesigning)[0] -TimestampServer http://time.certum.pl
+$admxTemplate = Get-ADMXTemplate -AppName $AppName -Categories $categories -Policies $policies -AppPolicyName $cleanAppPolicyName -FileType "json" -Class $Context;
+
+
+$omaConfigSetup = [PSCustomObject]@{
+    "@odata.type" = "#microsoft.graph.omaSettingString";
+    "displayName" = $AppName+': '+ $cleanAppPolicyName +" ADMX Install";
+    "description" = ""
+    "value" = $admxTemplate;
+    "omauri" = $OMASETUP;
+};
+
+$omaConfigs[0] = $omaConfigSetup;
+
+$omaConfigs | Select-Object -Property displayName,description,omauri,value | Export-csv -Path $OutputFilePath -NoTypeInformation
+
+# Set-AuthenticodeSignature "C:\Users\hauke\GitHub\PolicyApplicator-for-Microsoft-Intune\Code\Convert-JSonToOMACSVTemplate.ps1" @(Get-ChildItem cert:\CurrentUser\My -codesigning)[0] -TimestampServer http://time.certum.pl
 # SIG # Begin signature block
 # MIIk+QYJKoZIhvcNAQcCoIIk6jCCJOYCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUyQq50BprzDzBNAr3D7CyXT89
-# sOaggh4pMIIFCTCCA/GgAwIBAgIQDapMmE8NUKJDb44cpXT3cDANBgkqhkiG9w0B
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUnd/ldUIIDgj3Pz0QtjHWY9iD
+# gLKggh4pMIIFCTCCA/GgAwIBAgIQDapMmE8NUKJDb44cpXT3cDANBgkqhkiG9w0B
 # AQsFADB8MQswCQYDVQQGEwJHQjEbMBkGA1UECBMSR3JlYXRlciBNYW5jaGVzdGVy
 # MRAwDgYDVQQHEwdTYWxmb3JkMRgwFgYDVQQKEw9TZWN0aWdvIExpbWl0ZWQxJDAi
 # BgNVBAMTG1NlY3RpZ28gUlNBIENvZGUgU2lnbmluZyBDQTAeFw0yMTA0MjAwMDAw
@@ -339,33 +358,33 @@ ForEach ( $parse in $parsed ) {
 # bWl0ZWQxJDAiBgNVBAMTG1NlY3RpZ28gUlNBIENvZGUgU2lnbmluZyBDQQIQDapM
 # mE8NUKJDb44cpXT3cDAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAigAoAA
 # oQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4w
-# DAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUsLVF+nts//WjWu+R5IEe6S7P
-# UyMwDQYJKoZIhvcNAQEBBQAEggEAKoEWo72GNt5fKd4Ovh/wsFbfW7rP30uDsyq8
-# 5qd20pQfVXbtYtmGgTZBcUcr3PSYDsSpHKbWEqO6J9Z1FvJi3BGvwgmQH0epnqOm
-# zbq8bFFEsb7mIPhW3q8zheYeBx/OCvHZnreZMVroEuMuMc56WYp4JpesCQd6JNh4
-# VswhVsUC3XH8eGztSr2hsf2qs/M6ufZOc6IMjB1kxWRbCgAfryE/0U5Bt5ITn/yc
-# lnCef7eopwCNM2/MYk/qjuOOIaELIOMv/PBij2q0+8LBXPeYgnGD+58yRYlZaXG7
-# Rutcge9u5VsY1FVcWuFjo1lB5RVZ/0fIHvMPHS70UawH200rA6GCBAQwggQABgkq
+# DAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQU0td+y9HNGvTrEgNatW32lgJm
+# EFEwDQYJKoZIhvcNAQEBBQAEggEApUoDcC60q2a2+iiDVYERQnxZVfaJIpFQkwJu
+# 5DNkdCzUCVd4YnHP2KZv+o6CGc9pBwKB/V6uS1nQJMA7rTmaH37Mt/bx2XQGZdJR
+# YQ/JN6bHcG8njSS7quzdVn9cjt1jQwYFBlAbtLriFxdPOhFK3sd1RdFzac+DwLth
+# fCpjqQftuRHTtaryDEG2uaJFj8L4sRmH5n07gYJmujvsyfz9gk8nu5+9kOdjiH2X
+# 4lwPfuu0D3kWebWlv44mlxUTtafaOOZY1ursTkyDzuOY9aF1blEcPj7km7d4KkIz
+# dDmf4BE9aoOHMNXmwjcHvNoMR51jdiURrlPLANOgukAE61jPBqGCBAQwggQABgkq
 # hkiG9w0BCQYxggPxMIID7QIBATBrMFYxCzAJBgNVBAYTAlBMMSEwHwYDVQQKExhB
 # c3NlY28gRGF0YSBTeXN0ZW1zIFMuQS4xJDAiBgNVBAMTG0NlcnR1bSBUaW1lc3Rh
 # bXBpbmcgMjAyMSBDQQIRAPFkJYwJtuJ74g4yYI5L9KgwDQYJYIZIAWUDBAICBQCg
 # ggFXMBoGCSqGSIb3DQEJAzENBgsqhkiG9w0BCRABBDAcBgkqhkiG9w0BCQUxDxcN
-# MjEwOTE3MDkwNTA5WjA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCAbWb/o5XcrrPZD
-# u3mstI6BWHhPIcVUrhNHbToaPgXF0zA/BgkqhkiG9w0BCQQxMgQw1yXyy+lUjccB
-# mICWlnpyp/GVMFjzibq8gRBAbBN1/KHhVjFjQNaw8ipoclLIuRg8MIGgBgsqhkiG
+# MjEwOTE3MDkwODUzWjA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCAbWb/o5XcrrPZD
+# u3mstI6BWHhPIcVUrhNHbToaPgXF0zA/BgkqhkiG9w0BCQQxMgQwNdj9N57yxHc/
+# hIbcF3q+waPS5eYSOJli2Kd2Y4Z5UbBLy61+pvfsx30WtKY9tBAhMIGgBgsqhkiG
 # 9w0BCRACDDGBkDCBjTCBijCBhwQU0xHGlTEbjOc/1bVTGKzfWYrhmxMwbzBapFgw
 # VjELMAkGA1UEBhMCUEwxITAfBgNVBAoTGEFzc2VjbyBEYXRhIFN5c3RlbXMgUy5B
 # LjEkMCIGA1UEAxMbQ2VydHVtIFRpbWVzdGFtcGluZyAyMDIxIENBAhEA8WQljAm2
-# 4nviDjJgjkv0qDANBgkqhkiG9w0BAQEFAASCAgCgjVBbNNVEOqa2eR+I3voVMHIJ
-# K11Y9qpjyF9bejGS78IUd2I7gUJIA80C472FukfVxceJONF5XuqxEgLmyou5FYXb
-# ybfwsfZVNMxR9mMYUV6IiyXFm10+OMSO8PTSXXNA7d63VD7Z/eM7ST67V28zRajp
-# XlG++0RNo9KutHwrBaY3eyklr6YlngsvpGm4zSGNL5BWTR8WD++drf6RZgIiw+g+
-# bDMKYmgnK67fvGJ91ZEvnIm9ftpGoJvheWzWzeDQpcm7+tLv8C0WHM2IZe11fTij
-# /McMNptst1GF+V1cjGOh7A6YTzNsH/KeWHLwoOqJEbOlWoY+AC60ATjSw7uo+dzw
-# Jve3pDFYB4HyV2zTf08iswoGSXLBIsmJClUUBasAtsZ/RdxM7HE//q5jvbnpDLJM
-# OXmUfj5SmQ4J13j61KcE4mso0BLISqC1ZuvFmWymKan9IK5xuvudqF9hPOkuOM3n
-# k91Yd/61tjB0K3InxW8oocFmlhvFX9VbHBy3JhccILIEgIy4lKzDSq4QUT8VUdIk
-# TP/DOdkWLQWFuYMdFVAyZ0xwXAsUcwOZnZTK9uJTm6d3ysyP2wPQD5aT1e9w/o+N
-# xGC8WWxWzbMZ7RCFGA3YzegNwjDEQlpuKcCw6t4pnWnolPPBAlFkDhXvcXU9hGQX
-# 4vZwUgq72I9s2Pom6w==
+# 4nviDjJgjkv0qDANBgkqhkiG9w0BAQEFAASCAgBGaR/aDLS0ijR5aR982Yc3Bvfn
+# x+TBNnAYaAza7hefK8ruaWWfeaJic7gpK+NGO1m6wPxzz9envkJXYapIhkzxodGd
+# +7j5la5dTw/BcWVNp9JH1BQFe/arHlw/XhbRS0uFg1Z740miRcB6sr1aodRHYRE8
+# LJKxLbrUbrPNs8uJvjN/okb1CvPeyK/6Wx7191X9gZYGU7qU/GrMdJZ7dKrORVRa
+# PRNcLfGcfSGET/i0YbwhuT/l7D5e7DDWpspHGDohPg9hKgmSMqT/qOibJT45GMUf
+# fQSlZvxE2yai+pLkXlZ4RoEhnSZiFgYOVBMKy1lS7xkUVH701eCIaXGQKa0xjmvH
+# wK+vq3BngjU+s7qczZZL8xmj/eQsIrmfhT2ImKemHCFmUZbcdCNGdptlhh/JRofv
+# Z5bqIjt9+sZKddPW64hnPL3XB5bpR7XKseHobje1sI0/r/g6v8ryHVZBgPFkmuYX
+# v4tsw4f2ktKXlNMz1qfnhkqP0Qzk/Ys/yqfB1e2QDSMyOfgGto9yRJh/0Nrzj7aj
+# v4nVI4jWSwd85q9zm0C0lFW45HQjCFmT+VeExP3hziti1Blt9HPQ+SN3tLdkuAIp
+# G6krEseBTvGfyQW1u7mEnsdu2gV0JgXZkLr6ocXAi5skcweOwLlFojdz7u6plpMl
+# iZ+h6AOtCGw9gZk46A==
 # SIG # End signature block
