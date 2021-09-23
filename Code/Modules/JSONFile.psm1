@@ -6,6 +6,73 @@ $ARRAY_NODE_NAME = "Object[]";
 $STRING_NODE_NAME = "String";
 $INT_NODE_NAME = "Int32";
 
+function Test-JSONPathValueOnContent {
+<#
+.SYNOPSIS
+    Tests for an xml node value.
+.DESCRIPTION
+    This function tests an xml node for a value. The xml node can be selected by providing an xpath query.
+.PARAMETER Xml
+    The xml document that you want to evaluate
+.PARAMETER XPath
+    The XPath to the node of the Xml document that you want to evaluate.
+.PARAMETER Namespace
+    A table of namespaces that are used in the provided xpath query.
+.PARAMETER Value
+    The value that you want to test against.
+.PARAMETER Remediate
+    If provided the function will replace the node value with the given value if they do not match.
+.OUTPUTS
+    bool
+.NOTES
+    Created by Hauke Goetze
+.LINK
+    https://policyapplicator.weatherlights.com
+#>
+    param(
+        $InputObject,
+        [Parameter(Mandatory=$True)][string]$JSONPath,
+        [string]$Value
+    )
+
+    $Path = $JSONPath -replace "^/", "";
+    $Nodes = $Path -split "/";
+
+    $CurrentObject = $InputObject;
+
+    $result = $true;
+    $i = 1;
+    $NodeTypePrev = ($Nodes[0] -split ":")[1];
+    while ( $result -and ( $i -lt $Nodes.Count ) ) {
+        $NodeName,$NodeType = $Nodes[$i] -split ":";
+     
+        switch ( $NodeTypePrev ) {
+            "PSCustomObject"  {
+                  if ( !$CurrentObject.$NodeName ) {
+                    $result = $false;
+                  } else {
+                    $CurrentObject = $CurrentObject.$NodeName;
+                  }
+             }
+             "Object[]" {
+                  if ( !$CurrentObject[$NodeName] ) {
+                    $result = $false;
+                  } else {
+                    $CurrentObject = $CurrentObject[$NodeName];
+                  }
+             }
+         }
+         $i++;
+         $NodeTypePrev = $NodeType
+    }
+    if ( $result ) {
+        if ( $CurrentObject -ne $Value ) {
+            $result = $false;
+        }
+    }
+    return $result;
+
+}
 
 function Invoke-ParseObjectStructure {
     param(
@@ -108,9 +175,6 @@ function Set-JSonNodeByJsonPath {
         $NodeName, $NodeType = $Nodes[$i] -split ":";
         $ObjectToSet = $CurrentObject;
 
-        Write-Host "CurrentObject: $NodeName - $CurrentObject"
-        Write-Host $CurrentObject.GetType().Name
-
 
         if ( !$CurrentObject[$NodeName] ) {
             if  ( $Operation -eq "Create" -or $Operation -eq "Replace" ) {
@@ -164,8 +228,96 @@ function Set-JSonNodeByJsonPath {
     return $InputObject
 }
 
-ForEach ( $parse in $parsed ) {
-    $s1=Set-JSonNodeByJPPath -Path $parse.Path -Value $parse.Value -InputObject $s1
+
+function Invoke-JSONRemediation {
+<#
+.SYNOPSIS
+    Detects and remediates missmatches in xml
+.DESCRIPTION
+    This function takes a ruleset and matches it against a given xml document. If the function runs in remediation mode the xml content will be modified according to the ruleset.
+.PARAMETER Action
+    Defines wether the function will just detect missmatches or remediates them.
+.PARAMETER FilePath
+    The path to the xml file you want to test and remediate.
+.PARAMETER Encoding
+    The encoding of the xml file in case it needs to be created.
+.PARAMETER Rules
+    The set of remediation rules you want to match against the xml document.
+.PARAMETER Operation
+    Specifies what you want to do with the selected file (Create, update or replace).
+.NOTES
+    Created by Hauke Goetze
+.LINK
+    https://policyapplicator.weatherlights.com
+#>
+param (
+        [ValidateSet("Detect","Remediate")]  
+        [Parameter()]  
+        [string]$Action = "Detect",  
+
+
+        [ValidateNotNullOrEmpty()]  
+        [Parameter(ValueFromPipeline=$True,Mandatory=$True)]  
+        [string]$FilePath,
+
+        [ValidateSet("Unicode","UTF7","UTF8","UTF32","ASCII","BigEndianUnicode","Default","OEM")]  
+        [Parameter()]  
+        [string]$Encoding = "Unicode", 
+
+        [ValidateNotNullOrEmpty()][Parameter(Mandatory=$True)][System.Array]$Rules,
+
+        [ValidateSet("create","update","replace")][string]$Operation = "create"
+
+);
+
+    $Compliance = "Compliant";
+    $fileDoesNotExistYet = $false;
+
+    #try {
+            if ( Test-Path -Path $FilePath ) {
+                $encoding = Get-FileEncoding -Path $FilePath;
+                $json = Get-Content -Path $FilePath -Encoding $encoding -Raw
+                $jsonObj = ConvertFrom-Json -InputObject $json;
+
+            } else {
+                $jsonobj;
+                $fileDoesNotExistYet = $true;
+            }
+
+            if ( ($fileDoesNotExistYet -eq $true -and $Operation -eq "create") -or ($fileDoesNotExistYet -eq $false -and $Operation -eq "update") -or ($Operation -eq "replace") ) {
+                ForEach ( $rule in $Rules ) {
+                    if ( !(Test-JSONPathValueOnContent -inputobject $jsonobj -JSONPath $rule.JSONPath -Value $rule.Value) ) {
+                        $Compliance = "Non-Compliant: Element Missmatch."
+                        if ($Operation -ne "replace") {
+                            $Compliance = "Remediate";
+                        }
+                    }
+                }
+                if ( ($Compliance -ne "Compliant") -and ($Action -eq "Remediate") ) {
+                    # If operation is replace the file should be recreated from scratch.
+                    if ($Operation -eq "replace" -or $Compliance -eq "Remediate") {
+                        $newJsonObj;
+                        $RecreateFileRules = Invoke-ParseJSonStructure -InputObject $json;
+                        ForEach ( $rule in $RecreateFileRules ) {
+                            $newJsonObj = Set-JSonNodeByJsonPath -Path $rule.Path -InputObject $newJsonObj -Value $rule.Value -Operation Create;
+                        }
+                        ForEach ( $rule in $Rules ) {
+                            Set-XmlNodeByXpath -InputObject $newJsonObj -Path $rule.JSONPath -value $rule.Value -Operation $rule.Operation;
+                        }
+                        $outJson = 
+                    }
+
+                    if ( !(Test-Path -Path "$Filepath\..") ) {
+                        New-Item -Path $Filepath\.. -ItemType Directory
+                    }
+                    Out-File -FilePath $FilePath -InputObject $xml.OuterXml -Encoding $encoding -Force
+                }
+            }
+      #  } catch {
+       #     Write-Host "OHOH!"
+      #          $compliance = "Non-Compliant: Unknown error occured"
+       # }
+       return $Compliance
 }
 
 # Set-AuthenticodeSignature "C:\Users\hauke\GitHub\PolicyApplicator-for-Microsoft-Intune\Code\Modules\JSONFile.psm1" @(Get-ChildItem cert:\CurrentUser\My -codesigning)[0] -TimestampServer http://time.certum.pl

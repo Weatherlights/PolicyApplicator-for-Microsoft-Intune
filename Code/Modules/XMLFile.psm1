@@ -238,7 +238,7 @@ param (
                 $fileDoesNotExistYet = $true;
             }
 
-            if ( ($fileDoesNotExistYet -eq $false) -or ($Operation -eq "create") -or ($Operation -eq "replace") ) {
+            if ( ($fileDoesNotExistYet -eq $true -and $Operation -eq "create") -or ($fileDoesNotExistYet -eq $false -and $Operation -eq "update") -or ($Operation -eq "replace") ) {
                 ForEach ( $rule in $Rules ) {
                     if ( !(Test-XPathValueOnContent -Xml $Xml -XPath $rule.XPath -Value $rule.Value -Namespace $rule.Namespace) ) {
                         $Compliance = "Non-Compliant: Element Missmatch."
