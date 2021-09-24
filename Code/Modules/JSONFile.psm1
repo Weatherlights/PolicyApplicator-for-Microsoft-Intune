@@ -6,6 +6,7 @@ $ARRAY_NODE_NAME = "Object[]";
 $STRING_NODE_NAME = "String";
 $INT_NODE_NAME = "Int32";
 
+
 function Test-JSONPathValueOnContent {
 <#
 .SYNOPSIS
@@ -31,30 +32,33 @@ function Test-JSONPathValueOnContent {
 #>
     param(
         $InputObject,
-        [Parameter(Mandatory=$True)][string]$JSONPath,
+        [Parameter(Mandatory=$True)]$JSONPath,
         [string]$Value
     )
 
-    $Path = $JSONPath -replace "^/", "";
-    $Nodes = $Path -split "/";
+    $Nodes = $JSONPath
 
     $CurrentObject = $InputObject;
 
     $result = $true;
-    $i = 1;
-    $NodeTypePrev = ($Nodes[0] -split ":")[1];
+    $i = 0;
+
     while ( $result -and ( $i -lt $Nodes.Count ) ) {
-        $NodeName,$NodeType = $Nodes[$i] -split ":";
-     
+        $NodeName = $Nodes[$i];
+        $NodeTypePrev = $Nodes[$i].GetType().Name;
+        if ( $i -lt $Nodes.Count-1 ) {
+            $NodeType = $Nodes[$i+1].getType().Name
+        }
+
         switch ( $NodeTypePrev ) {
-            "PSCustomObject"  {
+            "String"  {
                   if ( !$CurrentObject.$NodeName ) {
                     $result = $false;
                   } else {
                     $CurrentObject = $CurrentObject.$NodeName;
                   }
              }
-             "Object[]" {
+             "Int32" {
                   if ( !$CurrentObject[$NodeName] ) {
                     $result = $false;
                   } else {
@@ -63,7 +67,6 @@ function Test-JSONPathValueOnContent {
              }
          }
          $i++;
-         $NodeTypePrev = $NodeType
     }
     if ( $result ) {
         if ( $CurrentObject -ne $Value ) {
@@ -74,32 +77,38 @@ function Test-JSONPathValueOnContent {
 
 }
 
+
 function Invoke-ParseObjectStructure {
     param(
         $InputObject,
         $CurrentPath
     )
     $OutValue = "";
+
     $DataType = $InputObject.GetType().Name;
-    $CurrentPath += ":$DataType"
+ 
     switch ( $InputObject.GetType().Name ) {
        "Object[]" {
+            
             For ( $i = 0; $i -lt $InputObject.Count; $i++ ) {
-                $NewPath = "$CurrentPath/$i";
-                Invoke-ParseObjectStructure -InputObject $InputObject[$i] -CurrentPath $NewPath -Elements $Elements
+                $NewPath = $CurrentPath + "$i,";
+                
+                Invoke-ParseObjectStructure -InputObject $InputObject[$i] -CurrentPath $newPath -Elements $Elements
             }
             
         }
         "PSCustomObject" {
             ForEach ( $noteProperty in (Get-Member -InputObject $InputObject | WHERE { $_.MemberType -eq "NoteProperty"} ) ) {           
                 $notePropertyName = $noteProperty.Name
-                $NewPath = "$CurrentPath/$notePropertyName";
-                Invoke-ParseObjectStructure -InputObject $InputObject.$notePropertyName -CurrentPath $NewPath -Elements $Elements;
+                $newPath = $CurrentPath + "`"$notePropertyName`",";
+                Invoke-ParseObjectStructure -InputObject $InputObject.$notePropertyName -CurrentPath $newPath -Elements $Elements;
             }
         } default {
-          
+            $CurrentPath = $CurrentPath -replace ",$";
+            $CurrentPath += "]";
+            $FinalPath = ConvertFrom-Json -InputObject $CurrentPath;
             @{
-                "Path" = $CurrentPath;
+                "Path" = $FinalPath;
                 "Value" = $InputObject
             };
         }
@@ -128,7 +137,7 @@ function Invoke-ParseJSonStructure {
 
     $object = ConvertFrom-Json $InputObject
 
-    $Elements = Invoke-ParseObjectStructure -InputObject $object -CurrentPath "/";
+    $Elements = Invoke-ParseObjectStructure -InputObject $object -CurrentPath "[";
 
     return $Elements
 
@@ -137,23 +146,24 @@ function Invoke-ParseJSonStructure {
 
 function Set-JSonNodeByJsonPath {
     param(
-        [Parameter(Mandatory=$True)][string]$Path, 
+        [Parameter(Mandatory=$True)]$Path, 
         [string]$Value,
         [ValidateSet("Create","Update", "Replace", "Delete")]  
         [Parameter(Mandatory=$True)]
         [ValidateNotNullOrEmpty()][string]$Operation,  
         $InputObject
     )
-    $Path = $Path -replace "^/", "";
-    $Nodes = $Path -split "/";
+
+    $Nodes = $Path
 
     Write-Host $Path
 
     if ( !$InputObject ) {
-        $NodeName, $NodeType = $Nodes[0] -split ":";
+        $NodeName = $Nodes[0];
+        $NodeType = $Nodes[0].getType().Name
         Write-Host $NodeType
         switch ( $NodeType ) {
-            "PSCustomObject"  {
+            "String"  {
                   $InputObject = @{};
              }
              "Object[]" {
@@ -171,9 +181,10 @@ function Set-JSonNodeByJsonPath {
 
 
 
-    For ( $i = 1; $i -lt $Nodes.Count; $i++ ) {
-        $NodeName, $NodeType = $Nodes[$i] -split ":";
-        $ObjectToSet = $CurrentObject;
+    For ( $i = 0; $i -lt $Nodes.Count-1; $i++ ) {
+        $NodeName = $Nodes[$i];
+        $NodeType = $Nodes[$i+1].getType().Name
+
 
 
         if ( !$CurrentObject[$NodeName] ) {
@@ -190,10 +201,10 @@ function Set-JSonNodeByJsonPath {
                     
                 }
                 switch ( $NodeType ) {
-                    "PSCustomObject"  {
+                    "String"  {
                         $CurrentObject[$NodeName] = @{};
                     }
-                    "Object[]" {
+                    "Int32" {
                         $CurrentObject[$NodeName] = [System.Collections.ArrayList]@()
                     }
                     default {
@@ -207,8 +218,11 @@ function Set-JSonNodeByJsonPath {
             }
         }
         $CurrentObject = $CurrentObject[$NodeName];
-    }
-    $NodeName, $NodeType = $Nodes[$i-1] -split ":";
+        $ObjectToSet = $CurrentObject;
+        Write-Host $i
+    } 
+    $NodeName = $Nodes[$i];
+    $NodeType = $Nodes[$i].getType().Name
     Write-Host "Setting Value $i - $NodeName $ObjectToSet";
     if ( $Operation -eq "Delete" ) {
         Write-Host "Removal of $NodeName"
@@ -222,11 +236,21 @@ function Set-JSonNodeByJsonPath {
         }
     } else {
         if ( !$ObjectToSet.$NodeName -or $Operation -eq "Replace" -or $Operation -eq "Update" ) { 
-            $ObjectToSet.$NodeName = $Value;
+                if ( $CurrentObject.GetType().Name -eq "ArrayList" ) {
+                
+                
+                    Write-Host "Modifing Object[]:";
+                    while ( $CurrentObject.Count -le $NodeName ) {
+                        $CurrentObject.Add($null) | Out-Null
+                    }
+                    
+                }
+            $ObjectToSet[$NodeName] = $Value;
         }
     }
     return $InputObject
 }
+
 
 
 function Invoke-JSONRemediation {
@@ -324,8 +348,8 @@ param (
 # SIG # Begin signature block
 # MIIk+QYJKoZIhvcNAQcCoIIk6jCCJOYCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUyQq50BprzDzBNAr3D7CyXT89
-# sOaggh4pMIIFCTCCA/GgAwIBAgIQDapMmE8NUKJDb44cpXT3cDANBgkqhkiG9w0B
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU+AWqbvs8C96K/9/od2t/OuC+
+# w1qggh4pMIIFCTCCA/GgAwIBAgIQDapMmE8NUKJDb44cpXT3cDANBgkqhkiG9w0B
 # AQsFADB8MQswCQYDVQQGEwJHQjEbMBkGA1UECBMSR3JlYXRlciBNYW5jaGVzdGVy
 # MRAwDgYDVQQHEwdTYWxmb3JkMRgwFgYDVQQKEw9TZWN0aWdvIExpbWl0ZWQxJDAi
 # BgNVBAMTG1NlY3RpZ28gUlNBIENvZGUgU2lnbmluZyBDQTAeFw0yMTA0MjAwMDAw
@@ -491,33 +515,33 @@ param (
 # bWl0ZWQxJDAiBgNVBAMTG1NlY3RpZ28gUlNBIENvZGUgU2lnbmluZyBDQQIQDapM
 # mE8NUKJDb44cpXT3cDAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAigAoAA
 # oQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4w
-# DAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUsLVF+nts//WjWu+R5IEe6S7P
-# UyMwDQYJKoZIhvcNAQEBBQAEggEAKoEWo72GNt5fKd4Ovh/wsFbfW7rP30uDsyq8
-# 5qd20pQfVXbtYtmGgTZBcUcr3PSYDsSpHKbWEqO6J9Z1FvJi3BGvwgmQH0epnqOm
-# zbq8bFFEsb7mIPhW3q8zheYeBx/OCvHZnreZMVroEuMuMc56WYp4JpesCQd6JNh4
-# VswhVsUC3XH8eGztSr2hsf2qs/M6ufZOc6IMjB1kxWRbCgAfryE/0U5Bt5ITn/yc
-# lnCef7eopwCNM2/MYk/qjuOOIaELIOMv/PBij2q0+8LBXPeYgnGD+58yRYlZaXG7
-# Rutcge9u5VsY1FVcWuFjo1lB5RVZ/0fIHvMPHS70UawH200rA6GCBAQwggQABgkq
+# DAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQU6gfSn4r+8BjRZ+LIauJ7Q39m
+# xHMwDQYJKoZIhvcNAQEBBQAEggEAfpGhV3qohH1wnIQbToQYqeCiHCXYTbwZi2Ey
+# J6r0XvW1gsUShwjCZ5PptHb2IvYJYZuxw+KGcAjGLcSta2Sf0o+1ERAU6G4TXGiR
+# iF2AAbqQvVO/SwFew0fFmqqJoHkmsp2imXnGhNqP9m8hpwZOkmNgEyinwfOyDoIE
+# aqJwgf7uUYYb+pEvjkOjgsz1xxUaHlBO4xhepZjlXeV7X1COOWdFkCattLKVUdpl
+# e6SYGKotbCYFsvv4bIEWKakflWP6OM//jhRjemKA/rAs121+CzAhPef1IvHGmk5J
+# Sitl+S1KSE3xWppYULGzUyWCiwOB1yKYIyF61+c1JZhrBJWzDKGCBAQwggQABgkq
 # hkiG9w0BCQYxggPxMIID7QIBATBrMFYxCzAJBgNVBAYTAlBMMSEwHwYDVQQKExhB
 # c3NlY28gRGF0YSBTeXN0ZW1zIFMuQS4xJDAiBgNVBAMTG0NlcnR1bSBUaW1lc3Rh
 # bXBpbmcgMjAyMSBDQQIRAPFkJYwJtuJ74g4yYI5L9KgwDQYJYIZIAWUDBAICBQCg
 # ggFXMBoGCSqGSIb3DQEJAzENBgsqhkiG9w0BCRABBDAcBgkqhkiG9w0BCQUxDxcN
-# MjEwOTE3MDkwNTA5WjA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCAbWb/o5XcrrPZD
-# u3mstI6BWHhPIcVUrhNHbToaPgXF0zA/BgkqhkiG9w0BCQQxMgQw1yXyy+lUjccB
-# mICWlnpyp/GVMFjzibq8gRBAbBN1/KHhVjFjQNaw8ipoclLIuRg8MIGgBgsqhkiG
+# MjEwOTI0MjAzNTIxWjA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCAbWb/o5XcrrPZD
+# u3mstI6BWHhPIcVUrhNHbToaPgXF0zA/BgkqhkiG9w0BCQQxMgQwex1VqoZ3iKda
+# YEy1rIKdPDWfe8XE3NdJCxtGYaSwgzL1KzNZIDG041wEEJ8dhM/zMIGgBgsqhkiG
 # 9w0BCRACDDGBkDCBjTCBijCBhwQU0xHGlTEbjOc/1bVTGKzfWYrhmxMwbzBapFgw
 # VjELMAkGA1UEBhMCUEwxITAfBgNVBAoTGEFzc2VjbyBEYXRhIFN5c3RlbXMgUy5B
 # LjEkMCIGA1UEAxMbQ2VydHVtIFRpbWVzdGFtcGluZyAyMDIxIENBAhEA8WQljAm2
-# 4nviDjJgjkv0qDANBgkqhkiG9w0BAQEFAASCAgCgjVBbNNVEOqa2eR+I3voVMHIJ
-# K11Y9qpjyF9bejGS78IUd2I7gUJIA80C472FukfVxceJONF5XuqxEgLmyou5FYXb
-# ybfwsfZVNMxR9mMYUV6IiyXFm10+OMSO8PTSXXNA7d63VD7Z/eM7ST67V28zRajp
-# XlG++0RNo9KutHwrBaY3eyklr6YlngsvpGm4zSGNL5BWTR8WD++drf6RZgIiw+g+
-# bDMKYmgnK67fvGJ91ZEvnIm9ftpGoJvheWzWzeDQpcm7+tLv8C0WHM2IZe11fTij
-# /McMNptst1GF+V1cjGOh7A6YTzNsH/KeWHLwoOqJEbOlWoY+AC60ATjSw7uo+dzw
-# Jve3pDFYB4HyV2zTf08iswoGSXLBIsmJClUUBasAtsZ/RdxM7HE//q5jvbnpDLJM
-# OXmUfj5SmQ4J13j61KcE4mso0BLISqC1ZuvFmWymKan9IK5xuvudqF9hPOkuOM3n
-# k91Yd/61tjB0K3InxW8oocFmlhvFX9VbHBy3JhccILIEgIy4lKzDSq4QUT8VUdIk
-# TP/DOdkWLQWFuYMdFVAyZ0xwXAsUcwOZnZTK9uJTm6d3ysyP2wPQD5aT1e9w/o+N
-# xGC8WWxWzbMZ7RCFGA3YzegNwjDEQlpuKcCw6t4pnWnolPPBAlFkDhXvcXU9hGQX
-# 4vZwUgq72I9s2Pom6w==
+# 4nviDjJgjkv0qDANBgkqhkiG9w0BAQEFAASCAgBkx90vxKVp3ygykJPditPdMxCd
+# 6UbJirNv5lRfTqauKLSBeEHVwZF0F5ySqMtm2icNT3LcCVyd6U4bQO/wm1zmQMy8
+# YcG97IDsEdy7oblkTfM7KvCNDcjBFSygwc8pX0H3T5hKw8ODja6nfzvBnqBCGZEj
+# kSAfehVQhooo+zayWAoEZr+q24WT6GcywWN0aIQhM5iHsuKN1U74cl0iqz6XWGXM
+# /ekurHdkzzzs7EplT8suOJFruLFHYCa3tpTAtJOrPxEjFZcJfaCYbygEf1V/ng4M
+# okKuxxToJOVC8lc1IHoh0q9yfKXMShZceOhnTApGnctujl/3Q4xS7mnUvMCZd5uG
+# bIoKrsLDKt4qL4f1g9KXyJnDrBgj5e7CjPket8oPXiq7mCmcoOLca/RNXyyMUC/H
+# lZIQyDtB0kK1SCw+EKm6fS3ZnBOv+8J9F/ZWerq58axL5ZhMgrMyA7nMj9YwKtRG
+# XYluPaKOybsM+oNj7/05DYZcJs8Beq0o3bXSQ9gy1HPkP2poAB411RfSHSzoFuvp
+# D3Xm52qJf68ixV65s7mpT/HMDPT2FIgfKd1I6czsIBwSF3l1uGImmZeQiWQAhBrR
+# vEtpzho8DflMd6Uv3AW1IVjOOq9fBciaTrtJTev224a4xBRzmEA5MkI4GXKn3+Ag
+# LuBKrfhuPKRQvpOTAg==
 # SIG # End signature block
