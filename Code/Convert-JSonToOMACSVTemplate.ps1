@@ -90,13 +90,12 @@ $policyMap = @();
 for ( $i=0; $i -lt $jsonPathsToConfigure.Count; $i++ ) {
     $jsonPathToConfigure = $jsonPathsToConfigure[$i];
     
-    $nodes = $jsonPathToConfigure.Path -split "/";
-    $nodesToIgnore = 1;
+    $nodes = ConvertFrom-JSon $jsonPathToConfigure.Path;
     
-    $displayName = "";
-    For ($j = 1; $j -le $nodes.Count-$nodesToIgnore; $j++ ) {
-        $nodeDisplayName = $nodes[$j] -replace ":.*", ""; 
-        if ( $nodes[$j-1] -match "\:Object\[\]" ) {
+    $displayName = "/";
+    For ($j = 0; $j -lt $nodes.Count; $j++ ) {
+        $nodeDisplayName = $nodes[$j]
+        if ( $nodes[$j].GetType().Name -eq "Int32" ) {
             $displayName += "[$nodeDisplayName]";
         } else {
             $displayName += "/$nodeDisplayName";
@@ -158,7 +157,7 @@ For ( $i = 0; $i -lt $policyMap.count; $i++ ) {
     $configuredValue = '<enabled/>
 <data id="'+$policyName+'-value" value="'+$policyValue+'"/>
 <data id="'+$policyName+'-operation" value="'+$policyOperation+'"/>
-<data id="'+$policyName+'-jsonpath" value="'+$policyjsonPath+'"/>'
+<data id="'+$policyName+'-jsonpath" value='''+$policyjsonPath+'''/>'
 
      $omaConfig = [PSCustomObject]@{
             "@odata.type" = "#microsoft.graph.omaSettingString";
@@ -186,12 +185,12 @@ $omaConfigs[0] = $omaConfigSetup;
 
 $omaConfigs | Select-Object -Property displayName,description,omauri,value | Export-csv -Path $OutputFilePath -NoTypeInformation
 
-# Set-AuthenticodeSignature "C:\Users\hauke\GitHub\PolicyApplicator-for-Microsoft-Intune\Code\Convert-JSonToOMACSVTemplate.ps1" @(Get-ChildItem cert:\CurrentUser\My -codesigning)[0] -TimestampServer http://time.certum.pl
+# Set-AuthenticodeSignature "$env:userprofile\GitHub\PolicyApplicator-for-Microsoft-Intune\Code\Convert-JSonToOMACSVTemplate.ps1" @(Get-ChildItem cert:\CurrentUser\My -codesigning)[0] -TimestampServer http://time.certum.pl
 # SIG # Begin signature block
 # MIIk+QYJKoZIhvcNAQcCoIIk6jCCJOYCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU1dJP+GGKHp+CICi3MHwpi5bN
-# Odyggh4pMIIFCTCCA/GgAwIBAgIQDapMmE8NUKJDb44cpXT3cDANBgkqhkiG9w0B
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUHlri2uvp5pDgtfnSLkgeTJbi
+# aV+ggh4pMIIFCTCCA/GgAwIBAgIQDapMmE8NUKJDb44cpXT3cDANBgkqhkiG9w0B
 # AQsFADB8MQswCQYDVQQGEwJHQjEbMBkGA1UECBMSR3JlYXRlciBNYW5jaGVzdGVy
 # MRAwDgYDVQQHEwdTYWxmb3JkMRgwFgYDVQQKEw9TZWN0aWdvIExpbWl0ZWQxJDAi
 # BgNVBAMTG1NlY3RpZ28gUlNBIENvZGUgU2lnbmluZyBDQTAeFw0yMTA0MjAwMDAw
@@ -357,33 +356,33 @@ $omaConfigs | Select-Object -Property displayName,description,omauri,value | Exp
 # bWl0ZWQxJDAiBgNVBAMTG1NlY3RpZ28gUlNBIENvZGUgU2lnbmluZyBDQQIQDapM
 # mE8NUKJDb44cpXT3cDAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAigAoAA
 # oQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4w
-# DAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUgthBWEiw+LWgFpRXIB7I3zOf
-# X8gwDQYJKoZIhvcNAQEBBQAEggEAP4H1AGgER4TQOJSfPVTtchrbxVnmdMHfgRyQ
-# Bv6lYC+pzOlEGMbAJSXkfEwnN/TrOHwJkwYACASekPn0cRP8VYt5PAfB3NTntWYy
-# cx7TS4I4SWViamKn5p9Dz4Zp3pC3wBJ00oRNhvAOFUTL+bnBA9Wco4gQ0BkV7fOU
-# rVCLysCSM/RQt0zWFrmtz3xLDNE/UkidMKshlIDpBnKDmeCqPkgbK7CN920pe9+Z
-# kbjdmQNIrEq5vhdFr7ZBV1wMLnmMKh+6jVh64Viuf8bGyHrZQaP5QX2CjA7Ta1NO
-# iSIlS70yjY8FsLaTaUL2EKBRWeVM7PfsPVPxQhY8RoyUvQtt5qGCBAQwggQABgkq
+# DAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQU71cHqjQ443G+dZZFYSPaGaNJ
+# 2nAwDQYJKoZIhvcNAQEBBQAEggEAfpw/AMSH1652d4VX5ZgofBOwr8/j70ItR6Li
+# gHEOUTdnscvnZUriwjX9cMNErG0tPbnxlsxzw2fittxcY2t3wwh0CCn7aNZaFfWH
+# q5+lKWx6yikUUlbsiOiQI807RJLR+uUdoHwU04kk8+axJU86yoWFFfvz8SYhC3fl
+# gsTyGzU2Yk9SgTnQ6Qa1WbHsVXHN0AxW4tZmaIvN1mmKdrJSz7SegzI5V5IFsWzx
+# uprgaGCBuYLNUvHzaGRK94XCEmvxcyLQo3G/6aYITpAM8NJBO647oPABxxmflCvw
+# AeymdP0+xivDRGibeePMrAQcN/G1T4QPHW88cAOh3Ih6OvdDfaGCBAQwggQABgkq
 # hkiG9w0BCQYxggPxMIID7QIBATBrMFYxCzAJBgNVBAYTAlBMMSEwHwYDVQQKExhB
 # c3NlY28gRGF0YSBTeXN0ZW1zIFMuQS4xJDAiBgNVBAMTG0NlcnR1bSBUaW1lc3Rh
 # bXBpbmcgMjAyMSBDQQIRAPFkJYwJtuJ74g4yYI5L9KgwDQYJYIZIAWUDBAICBQCg
 # ggFXMBoGCSqGSIb3DQEJAzENBgsqhkiG9w0BCRABBDAcBgkqhkiG9w0BCQUxDxcN
-# MjEwOTE3MDkwNTUyWjA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCAbWb/o5XcrrPZD
-# u3mstI6BWHhPIcVUrhNHbToaPgXF0zA/BgkqhkiG9w0BCQQxMgQwFYKhrsK2M/Yi
-# Zsv8NPjfK8CouskEfg5hVF2+mAgroxO6zyQlSKCBSgDWTc85pFSJMIGgBgsqhkiG
+# MjEwOTI1MjAyODQwWjA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCAbWb/o5XcrrPZD
+# u3mstI6BWHhPIcVUrhNHbToaPgXF0zA/BgkqhkiG9w0BCQQxMgQwi0tSjTlXVt7c
+# ET6PK7/Q7C64GngspQ2txs/Boarvcc27DJlKqexmmOCThqFRw9yLMIGgBgsqhkiG
 # 9w0BCRACDDGBkDCBjTCBijCBhwQU0xHGlTEbjOc/1bVTGKzfWYrhmxMwbzBapFgw
 # VjELMAkGA1UEBhMCUEwxITAfBgNVBAoTGEFzc2VjbyBEYXRhIFN5c3RlbXMgUy5B
 # LjEkMCIGA1UEAxMbQ2VydHVtIFRpbWVzdGFtcGluZyAyMDIxIENBAhEA8WQljAm2
-# 4nviDjJgjkv0qDANBgkqhkiG9w0BAQEFAASCAgBBwWlGjLwhKJk/Hb7B1Sqi/Ep9
-# UwqjO+0sjhLeqjKUfzZ3x29KsICHeAPcjNnWJ0hE0c8J4EgSmGgEstY5qApiKCfh
-# fs0FjBVyrunu7Eduq/2J2pGhWEFTR+CorK2ATMIGqRSu3RvPzsxww70R7DwJnQzi
-# tMcl7RRx1tXOR9+3FLQSgk+Idfk/lOePRd/D0KFd6QwxfktXBA8IHEU/LguCj1F2
-# l+5C/FJ0kxJZCpO9+33xrPbqJQHITN5kSN7B5M/TYuDXQWSUU3VV10ihFPj0l6QD
-# jOqkDz8GSXMz54QQrc2HFhy56hrnzNTIzxpftYLzTWfo7afBci6xeCvqmQoRge36
-# RW24j/zBKOIqpxIPfIc/STeD5BVjnRDVgU9JgDjDINldch6ZWNBrODLZNkbNIFnH
-# JHHZ1s+UCsZjXGmBHAKT6lGhtAQa91gAlMxJA8Or8T+07np7cnmgInoTX5u9iXAN
-# xxTeS2LGiwQSCorSOq2H7QIO+HWkPVDVx0D3DlWBD70jGrWVYEqhKNRXaXOj2aJJ
-# fMrTq9+yMxgzTJYllIp7Gk0pYm0SfTPAFLfQCX9cdxBSB7cv7UmMXqWDS0c/8MEh
-# 7cbsq74JbrIijPL6eSMTTq/SZeo4MJ3OP3BbHpk0U6qBHqkS8gbmcjJFlX/wv/KU
-# Bj83/bzIvEuXjPSM5A==
+# 4nviDjJgjkv0qDANBgkqhkiG9w0BAQEFAASCAgCozCSD0RipF6mz+Ke+G7GgAv5o
+# 9dpzPVeyjMMmdroOHjan1bru+3iXVwvRTVDvsawhadMFqM99GUpQFeFmcsS4Xhmz
+# QFVtrHKZFQC9UPDBGRZ0BlRfTfk03Gj8UFBJbsELt6egyWfteE3uMnbA0+bH7M86
+# jwqfDWZl9PWQnmf3lej9moGKYOSJ+0zN/su/5o6CM6HOJ+3MaNrNkhsUh4094FMu
+# gYeQmwi+Iy02hV+oPPsRVl5b2bONkG4fBAYBPLW1e6crLGEEzehIYMJlVaO/H9Wn
+# VB7vMJ7c+f3jhjkjWYf1WjM8PcLdSg8xpmMzpMKEGXJygg4RwwfddlLTu2kIKfkb
+# XiNU8nMfAQyq/VfqFrTOxdEEmuhELlXgX5xqJfV2H5gUgCU78eMv+NhB1M8DLClo
+# yX3E5ToGg8Vvys4xwgMT1UhKsYUh3S/EQcWhLXbodj7ti+ruYrNtbm19vFTeATKs
+# FSlg9GZkt0goPPgP4Som1um5FizAxbFSMn8lZKgGFuEhyLGP2gkJn7rYI0pVTFM3
+# s5HlG97ES5hJfI0ahJ/IbFF4fR2cvSc5xiKDECuiZQb0kDKHH1RmXV5Ek7j2fmTZ
+# r4fA+zXNoQXov+ypBBgWgeo6JlBRxHcYAehMMq6FwwVQAEj48mST0eKQa3EJgixe
+# CGXMRMiBUu4AUXIWsA==
 # SIG # End signature block

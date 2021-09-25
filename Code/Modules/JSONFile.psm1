@@ -1,28 +1,15 @@
-﻿##### UNDER DEVELOPMENT!!!! Not for productive use !!! ####
-# State: Proof of Concept 
-
-$OBJECT_NODE_NAME = "PSCustomObject";
-$ARRAY_NODE_NAME = "Object[]";
-$STRING_NODE_NAME = "String";
-$INT_NODE_NAME = "Int32";
-
-
-function Test-JSONPathValueOnContent {
+﻿function Test-JSONPathValueOnContent {
 <#
 .SYNOPSIS
-    Tests for an xml node value.
+    Tests for an json node value.
 .DESCRIPTION
-    This function tests an xml node for a value. The xml node can be selected by providing an xpath query.
+    This function tests an json node for a value. The json node can be selected by providing an JSONPath query.
 .PARAMETER Xml
-    The xml document that you want to evaluate
+    The json document that you want to evaluate
 .PARAMETER XPath
-    The XPath to the node of the Xml document that you want to evaluate.
-.PARAMETER Namespace
-    A table of namespaces that are used in the provided xpath query.
+    The json to the node of the json document that you want to evaluate.
 .PARAMETER Value
     The value that you want to test against.
-.PARAMETER Remediate
-    If provided the function will replace the node value with the given value if they do not match.
 .OUTPUTS
     bool
 .NOTES
@@ -32,12 +19,12 @@ function Test-JSONPathValueOnContent {
 #>
     param(
         $InputObject,
-        [Parameter(Mandatory=$True)]$JSONPath,
+        [Parameter(Mandatory=$True)][string]$JSONPath,
         [string]$Value
     )
 
-    $Nodes = $JSONPath
-
+    $Nodes = ConvertFrom-Json $JSONPath
+     
     $CurrentObject = $InputObject;
 
     $result = $true;
@@ -106,7 +93,7 @@ function Invoke-ParseObjectStructure {
         } default {
             $CurrentPath = $CurrentPath -replace ",$";
             $CurrentPath += "]";
-            $FinalPath = ConvertFrom-Json -InputObject $CurrentPath;
+            $FinalPath = $CurrentPath;
             @{
                 "Path" = $FinalPath;
                 "Value" = $InputObject
@@ -154,19 +141,20 @@ function Set-JSonNodeByJsonPath {
         $InputObject
     )
 
-    $Nodes = $Path
+    $Nodes = ConvertFrom-Json $Path
 
-    Write-Host $Path
-
+    # Handle the empty object case
     if ( !$InputObject ) {
         $NodeName = $Nodes[0];
         $NodeType = $Nodes[0].getType().Name
-        Write-Host $NodeType
         switch ( $NodeType ) {
             "String"  {
                   $InputObject = @{};
              }
-             "Object[]" {
+            "Char"  {
+                  $InputObject = @{};
+             }
+             "Int32" {
                 $InputObject = [System.Collections.ArrayList]@($null,$null)
              }
              default {
@@ -178,27 +166,16 @@ function Set-JSonNodeByJsonPath {
     $CurrentObject = $InputObject;
     $ObjectToSet = $null;
 
-
-
-
+    # Browse through the structure and build missing elements.
     For ( $i = 0; $i -lt $Nodes.Count-1; $i++ ) {
         $NodeName = $Nodes[$i];
         $NodeType = $Nodes[$i+1].getType().Name
-
-
-
         if ( !$CurrentObject[$NodeName] ) {
-            if  ( $Operation -eq "Create" -or $Operation -eq "Replace" ) {
-                Write-Host "Modifing PSCUstomObject";
-
+            if  ( $Operation -eq "Create" -or $Operation -eq "Replace" ) {                
                 if ( $CurrentObject.GetType().Name -eq "ArrayList" ) {
-                
-                
-                    Write-Host "Modifing Object[]:";
                     while ( $CurrentObject.Count -le $NodeName ) {
                         $CurrentObject.Add($null) | Out-Null
                     }
-                    
                 }
                 switch ( $NodeType ) {
                     "String"  {
@@ -211,24 +188,20 @@ function Set-JSonNodeByJsonPath {
                         $CurrentObject[$NodeName] = "";
                     }
                 }
-
-            Write-Host (ConvertTo-Json $CurrentObject);
             } else {
                 return $InputObject;
             }
         }
         $CurrentObject = $CurrentObject[$NodeName];
         $ObjectToSet = $CurrentObject;
-        Write-Host $i
-    } 
+    }
+
+    # Modify the target element
     $NodeName = $Nodes[$i];
     $NodeType = $Nodes[$i].getType().Name
-    Write-Host "Setting Value $i - $NodeName $ObjectToSet";
     if ( $Operation -eq "Delete" ) {
-        Write-Host "Removal of $NodeName"
         switch ( $objecttoset.GetType().Name ) {
             "ArrayList" {
-                
                 $ObjectToSet.RemoveAt($NodeName);
             } default {
                 $ObjectToSet.Remove($NodeName);
@@ -237,9 +210,6 @@ function Set-JSonNodeByJsonPath {
     } else {
         if ( !$ObjectToSet.$NodeName -or $Operation -eq "Replace" -or $Operation -eq "Update" ) { 
                 if ( $CurrentObject.GetType().Name -eq "ArrayList" ) {
-                
-                
-                    Write-Host "Modifing Object[]:";
                     while ( $CurrentObject.Count -le $NodeName ) {
                         $CurrentObject.Add($null) | Out-Null
                     }
@@ -256,17 +226,17 @@ function Set-JSonNodeByJsonPath {
 function Invoke-JSONRemediation {
 <#
 .SYNOPSIS
-    Detects and remediates missmatches in xml
+    Detects and remediates missmatches in JSON
 .DESCRIPTION
-    This function takes a ruleset and matches it against a given xml document. If the function runs in remediation mode the xml content will be modified according to the ruleset.
+    This function takes a ruleset and matches it against a given json document. If the function runs in remediation mode the json content will be modified according to the ruleset.
 .PARAMETER Action
     Defines wether the function will just detect missmatches or remediates them.
 .PARAMETER FilePath
-    The path to the xml file you want to test and remediate.
+    The path to the json file you want to test and remediate.
 .PARAMETER Encoding
-    The encoding of the xml file in case it needs to be created.
+    The encoding of the json file in case it needs to be created.
 .PARAMETER Rules
-    The set of remediation rules you want to match against the xml document.
+    The set of remediation rules you want to match against the json document.
 .PARAMETER Operation
     Specifies what you want to do with the selected file (Create, update or replace).
 .NOTES
@@ -293,50 +263,78 @@ param (
         [ValidateSet("create","update","replace")][string]$Operation = "create"
 
 );
-
     $Compliance = "Compliant";
     $fileDoesNotExistYet = $false;
+    $newJsonObj = $null;
 
     #try {
             if ( Test-Path -Path $FilePath ) {
                 $encoding = Get-FileEncoding -Path $FilePath;
                 $json = Get-Content -Path $FilePath -Encoding $encoding -Raw
-                $jsonObj = ConvertFrom-Json -InputObject $json;
+                $jsonobj = ConvertFrom-Json $json;
+
+                forEach ( $rule in $Rules ) {
+                    if ( !(Test-JSONPathValueOnContent -InputObject $jsonobj -JsonPath $rule.JSONPath -Value $rule.Value) ) {
+                        $Compliance = "Non-Compliant: Element missmatch!"
+                    }
+                }
 
             } else {
                 $jsonobj;
                 $fileDoesNotExistYet = $true;
-            }
 
-            if ( ($fileDoesNotExistYet -eq $true -and $Operation -eq "create") -or ($fileDoesNotExistYet -eq $false -and $Operation -eq "update") -or ($Operation -eq "replace") ) {
-                ForEach ( $rule in $Rules ) {
-                    if ( !(Test-JSONPathValueOnContent -inputobject $jsonobj -JSONPath $rule.JSONPath -Value $rule.Value) ) {
-                        $Compliance = "Non-Compliant: Element Missmatch."
-                        if ($Operation -ne "replace") {
-                            $Compliance = "Remediate";
+                $Compliance = "Non-Compliant: File does not exist!"
+            }
+            
+
+            if ( $Compliance -ne "Compliant" ) {
+                switch ( $Operation ) {
+                    "Create" {
+                    # In case the file exist merge it with the ruleset.
+                        if ( !$fileDoesNotExistYet ) {
+                            $RecreateFileRules = Invoke-ParseJSonStructure -InputObject $json;
+                            ForEach ( $rule in $RecreateFileRules ) {
+                                $newJsonObj = Set-JSonNodeByJsonPath -Path $rule.Path -InputObject $newJsonObj -Value $rule.Value -Operation Create;
+                            }
+                        }
+                        ForEach ( $rule in $Rules ) {
+                            $newJsonObj = Set-JSonNodeByJsonPath -InputObject $newJsonObj -Path $rule.JSONPath -value $rule.Value -Operation $rule.Operation;
+                        }
+
+                    }
+                    "Replace" {
+                    # Recreate file from scratch.
+                        ForEach ( $rule in $Rules ) {
+                            $newJsonObj = Set-JSonNodeByJsonPath -InputObject $newJsonObj -Path $rule.JSONPath -value $rule.Value -Operation $rule.Operation;
+                        }
+                        
+                    }
+                    "Update" {
+                    # Only modify anything if the file already exists.
+                        if ( !$fileDoesNotExistYet ) {
+                            $RecreateFileRules = Invoke-ParseJSonStructure -InputObject $json;
+                            ForEach ( $rule in $RecreateFileRules ) {
+                                $newJsonObj = Set-JSonNodeByJsonPath -Path $rule.Path -InputObject $newJsonObj -Value $rule.Value -Operation Create;
+                            }
+                            ForEach ( $rule in $Rules ) {
+                                $newJsonObj = Set-JSonNodeByJsonPath -InputObject $newJsonObj -Path $rule.JSONPath -value $rule.Value -Operation $rule.Operation;
+                            }
                         }
                     }
                 }
-                if ( ($Compliance -ne "Compliant") -and ($Action -eq "Remediate") ) {
-                    # If operation is replace the file should be recreated from scratch.
-                    if ($Operation -eq "replace" -or $Compliance -eq "Remediate") {
-                        $newJsonObj;
-                        $RecreateFileRules = Invoke-ParseJSonStructure -InputObject $json;
-                        ForEach ( $rule in $RecreateFileRules ) {
-                            $newJsonObj = Set-JSonNodeByJsonPath -Path $rule.Path -InputObject $newJsonObj -Value $rule.Value -Operation Create;
-                        }
-                        ForEach ( $rule in $Rules ) {
-                            Set-XmlNodeByXpath -InputObject $newJsonObj -Path $rule.JSONPath -value $rule.Value -Operation $rule.Operation;
-                        }
-                        $outJson = 
-                    }
 
+                if ( $newJsonObj -and $Action -eq "Remediate" ) {
+                    # Create the path to the file in case it does not exist
                     if ( !(Test-Path -Path "$Filepath\..") ) {
                         New-Item -Path $Filepath\.. -ItemType Directory
                     }
-                    Out-File -FilePath $FilePath -InputObject $xml.OuterXml -Encoding $encoding -Force
+                    # Write the new json file to disk.
+                    Out-File -FilePath $FilePath -InputObject (ConvertTo-Json $newJsonObj -Depth 99) -Encoding $encoding -Force
+                    # Reset compliance state since everything has been remediated.
+                    $Compliance = "Compliant"
                 }
             }
+
       #  } catch {
        #     Write-Host "OHOH!"
       #          $compliance = "Non-Compliant: Unknown error occured"
@@ -344,12 +342,12 @@ param (
        return $Compliance
 }
 
-# Set-AuthenticodeSignature "C:\Users\hauke\GitHub\PolicyApplicator-for-Microsoft-Intune\Code\Modules\JSONFile.psm1" @(Get-ChildItem cert:\CurrentUser\My -codesigning)[0] -TimestampServer http://time.certum.pl
+# Set-AuthenticodeSignature "$env:userprofile\GitHub\PolicyApplicator-for-Microsoft-Intune\Code\Modules\JSONFile.psm1" @(Get-ChildItem cert:\CurrentUser\My -codesigning)[0] -TimestampServer http://time.certum.pl
 # SIG # Begin signature block
 # MIIk+QYJKoZIhvcNAQcCoIIk6jCCJOYCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU+AWqbvs8C96K/9/od2t/OuC+
-# w1qggh4pMIIFCTCCA/GgAwIBAgIQDapMmE8NUKJDb44cpXT3cDANBgkqhkiG9w0B
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUY7osHgq5C5Wf7F8AfMfJpxLp
+# XD6ggh4pMIIFCTCCA/GgAwIBAgIQDapMmE8NUKJDb44cpXT3cDANBgkqhkiG9w0B
 # AQsFADB8MQswCQYDVQQGEwJHQjEbMBkGA1UECBMSR3JlYXRlciBNYW5jaGVzdGVy
 # MRAwDgYDVQQHEwdTYWxmb3JkMRgwFgYDVQQKEw9TZWN0aWdvIExpbWl0ZWQxJDAi
 # BgNVBAMTG1NlY3RpZ28gUlNBIENvZGUgU2lnbmluZyBDQTAeFw0yMTA0MjAwMDAw
@@ -515,33 +513,33 @@ param (
 # bWl0ZWQxJDAiBgNVBAMTG1NlY3RpZ28gUlNBIENvZGUgU2lnbmluZyBDQQIQDapM
 # mE8NUKJDb44cpXT3cDAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAigAoAA
 # oQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4w
-# DAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQU6gfSn4r+8BjRZ+LIauJ7Q39m
-# xHMwDQYJKoZIhvcNAQEBBQAEggEAfpGhV3qohH1wnIQbToQYqeCiHCXYTbwZi2Ey
-# J6r0XvW1gsUShwjCZ5PptHb2IvYJYZuxw+KGcAjGLcSta2Sf0o+1ERAU6G4TXGiR
-# iF2AAbqQvVO/SwFew0fFmqqJoHkmsp2imXnGhNqP9m8hpwZOkmNgEyinwfOyDoIE
-# aqJwgf7uUYYb+pEvjkOjgsz1xxUaHlBO4xhepZjlXeV7X1COOWdFkCattLKVUdpl
-# e6SYGKotbCYFsvv4bIEWKakflWP6OM//jhRjemKA/rAs121+CzAhPef1IvHGmk5J
-# Sitl+S1KSE3xWppYULGzUyWCiwOB1yKYIyF61+c1JZhrBJWzDKGCBAQwggQABgkq
+# DAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUYSqBZd2YiTIoeeCDJksqilSI
+# +kcwDQYJKoZIhvcNAQEBBQAEggEAdh43Myl2BAiUIZBnM+6a2uRvzgRqgHsU3HsH
+# /yl6/ehQCDn8N77WaIiaWR7VfAV9Rzpf98o0lbIGowWbSzIOAhuRvyHYFz97PEKG
+# 4hDn+IFLfLoC0XpThJUWR+P7Gm87IUuqygWWG23WjxXBZYDUq+OjwSZX0SL124IO
+# zjuQ5nE+o++Ji2M30tUgzoL6VKWAty1MuppaalqkNd5G34LGK2LauWhcrtTmuLuf
+# hzMjSJ0bnp5RD4aQgp6RlSTUWNR/HhMarMRKaBAP+65v2LM/MPDZn8kzrC0Kun+S
+# MDAv38JEorCSodmeTNP8K+kA0otALRRgEn4P28yTY6uJ/1tGeqGCBAQwggQABgkq
 # hkiG9w0BCQYxggPxMIID7QIBATBrMFYxCzAJBgNVBAYTAlBMMSEwHwYDVQQKExhB
 # c3NlY28gRGF0YSBTeXN0ZW1zIFMuQS4xJDAiBgNVBAMTG0NlcnR1bSBUaW1lc3Rh
 # bXBpbmcgMjAyMSBDQQIRAPFkJYwJtuJ74g4yYI5L9KgwDQYJYIZIAWUDBAICBQCg
 # ggFXMBoGCSqGSIb3DQEJAzENBgsqhkiG9w0BCRABBDAcBgkqhkiG9w0BCQUxDxcN
-# MjEwOTI0MjAzNTIxWjA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCAbWb/o5XcrrPZD
-# u3mstI6BWHhPIcVUrhNHbToaPgXF0zA/BgkqhkiG9w0BCQQxMgQwex1VqoZ3iKda
-# YEy1rIKdPDWfe8XE3NdJCxtGYaSwgzL1KzNZIDG041wEEJ8dhM/zMIGgBgsqhkiG
+# MjEwOTI1MjExNzEzWjA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCAbWb/o5XcrrPZD
+# u3mstI6BWHhPIcVUrhNHbToaPgXF0zA/BgkqhkiG9w0BCQQxMgQwVwiCIH32b0k+
+# zNc/1ehzb+dhAAQVbce1rlkTZ9j6dYhf3F3vdk0UrD0AP3BNo9iLMIGgBgsqhkiG
 # 9w0BCRACDDGBkDCBjTCBijCBhwQU0xHGlTEbjOc/1bVTGKzfWYrhmxMwbzBapFgw
 # VjELMAkGA1UEBhMCUEwxITAfBgNVBAoTGEFzc2VjbyBEYXRhIFN5c3RlbXMgUy5B
 # LjEkMCIGA1UEAxMbQ2VydHVtIFRpbWVzdGFtcGluZyAyMDIxIENBAhEA8WQljAm2
-# 4nviDjJgjkv0qDANBgkqhkiG9w0BAQEFAASCAgBkx90vxKVp3ygykJPditPdMxCd
-# 6UbJirNv5lRfTqauKLSBeEHVwZF0F5ySqMtm2icNT3LcCVyd6U4bQO/wm1zmQMy8
-# YcG97IDsEdy7oblkTfM7KvCNDcjBFSygwc8pX0H3T5hKw8ODja6nfzvBnqBCGZEj
-# kSAfehVQhooo+zayWAoEZr+q24WT6GcywWN0aIQhM5iHsuKN1U74cl0iqz6XWGXM
-# /ekurHdkzzzs7EplT8suOJFruLFHYCa3tpTAtJOrPxEjFZcJfaCYbygEf1V/ng4M
-# okKuxxToJOVC8lc1IHoh0q9yfKXMShZceOhnTApGnctujl/3Q4xS7mnUvMCZd5uG
-# bIoKrsLDKt4qL4f1g9KXyJnDrBgj5e7CjPket8oPXiq7mCmcoOLca/RNXyyMUC/H
-# lZIQyDtB0kK1SCw+EKm6fS3ZnBOv+8J9F/ZWerq58axL5ZhMgrMyA7nMj9YwKtRG
-# XYluPaKOybsM+oNj7/05DYZcJs8Beq0o3bXSQ9gy1HPkP2poAB411RfSHSzoFuvp
-# D3Xm52qJf68ixV65s7mpT/HMDPT2FIgfKd1I6czsIBwSF3l1uGImmZeQiWQAhBrR
-# vEtpzho8DflMd6Uv3AW1IVjOOq9fBciaTrtJTev224a4xBRzmEA5MkI4GXKn3+Ag
-# LuBKrfhuPKRQvpOTAg==
+# 4nviDjJgjkv0qDANBgkqhkiG9w0BAQEFAASCAgCK3jw46YAjqf8+rX2SghzWquBT
+# qDf8BVGtZ2fLnGgoVXvZtHevQWDowdPXQcp8Guhn+gP55B/4lvYx4R/8Ptx/rOUb
+# kv+DWIc0aeMMtLEGyKcitJwX1z4GKtWtCkg/cF7JxmzN3ZCx0CgObaCOjDeLUM7t
+# 0XMgZEsZg4MEZCWiwbDfoRC6eNWnJig6CYoL9lK3IpzaBN9k+YuLgFg+dnvlRGrB
+# 40xulX3V9zw/yLwkZoVDcLc8WH9DSf0zqOGlxrYKVMO0spAFeKy6OIfiKbG/f/Ft
+# 0t6LKyEOqUZuEmWeMiCpqJ4qmLn0+Q41R5hSLI4FrEeZdUTj2KpiYjb2dRsB/lFk
+# 5ue6WxCtU1VBUVP06LrvZMojza2zvsRr1/Jl/lgi40dOt5rt6rwRaaUYTpqhRPBv
+# m4pixcvKV01NcA9Arpi97tuy19E2varCj2HVrIm3dM22aT4mQbKqogzsmp+zZCjh
+# 5E7VW5+/DqxWvjyidqbFpBWggzQeYvig/zCUMTssyu9E88RRfjyMyki4oRasZRI1
+# KTCNh//u+FyNsx33F/2xepkBRxp2Py5gPgGxKZfme6PuYMJJOB1ndzD2pATzBHt0
+# EzjBBX1knD+Zc1MwLPBGkzVZMiizrbpPK6krALqHYo5Cx9+06axY+IAkQFMPHq9V
+# iXHDjUz+HFiqG5qbgQ==
 # SIG # End signature block
