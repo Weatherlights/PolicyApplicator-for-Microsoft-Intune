@@ -7,7 +7,8 @@
           
     .Notes  
         Author        : Hauke Goetze (hauke@hauke.us)
-        Version        : 1.0 - 2021/09/17 - Initial release  
+        Version        : 1.0 - 2021/09/17 - Initial release
+                         1.1 - 2021/09/27 - Escape strings xml compatible  
           
           
     .Parameter FilePath  
@@ -129,11 +130,16 @@ $encoding = Get-FileEncoding -Path $FilePath
 
 $omaConfigFileUri = "$OMABASE$AppName~Policy~$cleanAppPolicyName/$AppName-$cleanAppPolicyName-File"
 
+$AppNameXmlCompatible = ConvertTo-XmlCompatibleString $AppName;
+$cleanAppPolicyNameXmlCompatible = ConvertTo-XmlCompatibleString $cleanAppPolicyName;
+$outFilePathXmlCompatible = ConvertTo-XmlCompatibleString $outFilePath
+$encodingXmlCompatible = ConvertTo-XmlCompatibleString $encoding
+
 $omaConfigFile = [PSCustomObject]@{
     "@odata.type" = "#microsoft.graph.omaSettingString";
     "displayName" = $AppName+': '+ $cleanAppPolicyName +" File configuration";
     "description" = ""
-    "value" = "<enabled/><data id=`"$AppName-$cleanAppPolicyName-File-path`" value=`"$outFilePath`"/><data id=`"$AppName-$cleanAppPolicyName-File-operation`" value=`"create`"/><data id=`"$AppName-$cleanAppPolicyName-File-encoding`" value=`"$encoding`"/>";
+    "value" = "<enabled/><data id=`"$AppNameXmlCompatible-$cleanAppPolicyNameXmlCompatible-File-path`" value=`"$outFilePathXmlCompatible`"/><data id=`"$AppNameXmlCompatible-$cleanAppPolicyNameXmlCompatible-File-operation`" value=`"create`"/><data id=`"$AppName-$cleanAppPolicyName-File-encoding`" value=`"$encodingXmlCompatible`"/>";
     "omauri" = $omaConfigFileUri;
 };
 
@@ -154,10 +160,15 @@ For ( $i = 0; $i -lt $policyMap.count; $i++ ) {
     
     $policyOMAURI ="$OMABASE$AppName~Policy~$policyCategoryName/$policyName"
    
+    $policyNameXmlCompatible = ConvertTo-XmlCompatibleString $policyName;
+    $policyValueXmlCompatible = ConvertTo-XmlCompatibleString $policyValue;
+    $policyOperationXmlCompatible = ConvertTo-XmlCompatibleString $policyOperation
+    $policyjsonPathXmlCompatible = ConvertTo-XmlCompatibleString $policyjsonPath -IgnoreQuotes;
+
     $configuredValue = '<enabled/>
-<data id="'+$policyName+'-value" value="'+$policyValue+'"/>
-<data id="'+$policyName+'-operation" value="'+$policyOperation+'"/>
-<data id="'+$policyName+'-jsonpath" value='''+$policyjsonPath+'''/>'
+<data id="'+$policyNameXmlCompatible+'-value" value='''+$policyValueXmlCompatible+'''/>
+<data id="'+$policyNameXmlCompatible+'-operation" value='''+$policyOperationXmlCompatible+'''/>
+<data id="'+$policyNameXmlCompatible+'-jsonpath" value='''+$policyjsonPathXmlCompatible+'''/>'
 
      $omaConfig = [PSCustomObject]@{
             "@odata.type" = "#microsoft.graph.omaSettingString";
@@ -189,8 +200,8 @@ $omaConfigs | Select-Object -Property displayName,description,omauri,value | Exp
 # SIG # Begin signature block
 # MIIk+QYJKoZIhvcNAQcCoIIk6jCCJOYCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUHlri2uvp5pDgtfnSLkgeTJbi
-# aV+ggh4pMIIFCTCCA/GgAwIBAgIQDapMmE8NUKJDb44cpXT3cDANBgkqhkiG9w0B
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU1XqS5RYVcBc5JJOh4ybdc2D6
+# Yeqggh4pMIIFCTCCA/GgAwIBAgIQDapMmE8NUKJDb44cpXT3cDANBgkqhkiG9w0B
 # AQsFADB8MQswCQYDVQQGEwJHQjEbMBkGA1UECBMSR3JlYXRlciBNYW5jaGVzdGVy
 # MRAwDgYDVQQHEwdTYWxmb3JkMRgwFgYDVQQKEw9TZWN0aWdvIExpbWl0ZWQxJDAi
 # BgNVBAMTG1NlY3RpZ28gUlNBIENvZGUgU2lnbmluZyBDQTAeFw0yMTA0MjAwMDAw
@@ -356,33 +367,33 @@ $omaConfigs | Select-Object -Property displayName,description,omauri,value | Exp
 # bWl0ZWQxJDAiBgNVBAMTG1NlY3RpZ28gUlNBIENvZGUgU2lnbmluZyBDQQIQDapM
 # mE8NUKJDb44cpXT3cDAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAigAoAA
 # oQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4w
-# DAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQU71cHqjQ443G+dZZFYSPaGaNJ
-# 2nAwDQYJKoZIhvcNAQEBBQAEggEAfpw/AMSH1652d4VX5ZgofBOwr8/j70ItR6Li
-# gHEOUTdnscvnZUriwjX9cMNErG0tPbnxlsxzw2fittxcY2t3wwh0CCn7aNZaFfWH
-# q5+lKWx6yikUUlbsiOiQI807RJLR+uUdoHwU04kk8+axJU86yoWFFfvz8SYhC3fl
-# gsTyGzU2Yk9SgTnQ6Qa1WbHsVXHN0AxW4tZmaIvN1mmKdrJSz7SegzI5V5IFsWzx
-# uprgaGCBuYLNUvHzaGRK94XCEmvxcyLQo3G/6aYITpAM8NJBO647oPABxxmflCvw
-# AeymdP0+xivDRGibeePMrAQcN/G1T4QPHW88cAOh3Ih6OvdDfaGCBAQwggQABgkq
+# DAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUkUr+u5DpJeFqMH/K7t/700dU
+# WzYwDQYJKoZIhvcNAQEBBQAEggEAYhRq+w4FxL/KYIFSH3qMsC0Reyxxy0WA9EMR
+# mTEBvWCVjjScrdhGRvWUoNtIK7Yjqr2f1VEspb3hdWX0iYhApjJZ5j+uuMdT51O5
+# lbSdJJxzXfs59XxfBwm+Jwy7zK8bcEf4BSWexm9QjuM2NR0p3XNV2Kk7NWvMQk93
+# 2vrlajRLU0IWe7NTsEwOkW8AZfVu31MaaLv512WE57h88uyMysQ2LKY4dDoRwdo6
+# I761g5169TQxNvc8vVhxQlh2BudpY+8ZbRnvaAAdijL4eFime9YXcaCeHMY6X0cp
+# 9Aw4Jz7Vo59YJqwcJcq7gltq45j6OHq7JBEvRz4kZ8lbTMtNnqGCBAQwggQABgkq
 # hkiG9w0BCQYxggPxMIID7QIBATBrMFYxCzAJBgNVBAYTAlBMMSEwHwYDVQQKExhB
 # c3NlY28gRGF0YSBTeXN0ZW1zIFMuQS4xJDAiBgNVBAMTG0NlcnR1bSBUaW1lc3Rh
 # bXBpbmcgMjAyMSBDQQIRAPFkJYwJtuJ74g4yYI5L9KgwDQYJYIZIAWUDBAICBQCg
 # ggFXMBoGCSqGSIb3DQEJAzENBgsqhkiG9w0BCRABBDAcBgkqhkiG9w0BCQUxDxcN
-# MjEwOTI1MjAyODQwWjA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCAbWb/o5XcrrPZD
-# u3mstI6BWHhPIcVUrhNHbToaPgXF0zA/BgkqhkiG9w0BCQQxMgQwi0tSjTlXVt7c
-# ET6PK7/Q7C64GngspQ2txs/Boarvcc27DJlKqexmmOCThqFRw9yLMIGgBgsqhkiG
+# MjEwOTI3MTA1MzAzWjA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCAbWb/o5XcrrPZD
+# u3mstI6BWHhPIcVUrhNHbToaPgXF0zA/BgkqhkiG9w0BCQQxMgQwfy1Ndvdck5ue
+# p2CupIF1Xi3HsnG3gejNswg4/fVGdyZQCHgSgoeiuOtOHVmSawFAMIGgBgsqhkiG
 # 9w0BCRACDDGBkDCBjTCBijCBhwQU0xHGlTEbjOc/1bVTGKzfWYrhmxMwbzBapFgw
 # VjELMAkGA1UEBhMCUEwxITAfBgNVBAoTGEFzc2VjbyBEYXRhIFN5c3RlbXMgUy5B
 # LjEkMCIGA1UEAxMbQ2VydHVtIFRpbWVzdGFtcGluZyAyMDIxIENBAhEA8WQljAm2
-# 4nviDjJgjkv0qDANBgkqhkiG9w0BAQEFAASCAgCozCSD0RipF6mz+Ke+G7GgAv5o
-# 9dpzPVeyjMMmdroOHjan1bru+3iXVwvRTVDvsawhadMFqM99GUpQFeFmcsS4Xhmz
-# QFVtrHKZFQC9UPDBGRZ0BlRfTfk03Gj8UFBJbsELt6egyWfteE3uMnbA0+bH7M86
-# jwqfDWZl9PWQnmf3lej9moGKYOSJ+0zN/su/5o6CM6HOJ+3MaNrNkhsUh4094FMu
-# gYeQmwi+Iy02hV+oPPsRVl5b2bONkG4fBAYBPLW1e6crLGEEzehIYMJlVaO/H9Wn
-# VB7vMJ7c+f3jhjkjWYf1WjM8PcLdSg8xpmMzpMKEGXJygg4RwwfddlLTu2kIKfkb
-# XiNU8nMfAQyq/VfqFrTOxdEEmuhELlXgX5xqJfV2H5gUgCU78eMv+NhB1M8DLClo
-# yX3E5ToGg8Vvys4xwgMT1UhKsYUh3S/EQcWhLXbodj7ti+ruYrNtbm19vFTeATKs
-# FSlg9GZkt0goPPgP4Som1um5FizAxbFSMn8lZKgGFuEhyLGP2gkJn7rYI0pVTFM3
-# s5HlG97ES5hJfI0ahJ/IbFF4fR2cvSc5xiKDECuiZQb0kDKHH1RmXV5Ek7j2fmTZ
-# r4fA+zXNoQXov+ypBBgWgeo6JlBRxHcYAehMMq6FwwVQAEj48mST0eKQa3EJgixe
-# CGXMRMiBUu4AUXIWsA==
+# 4nviDjJgjkv0qDANBgkqhkiG9w0BAQEFAASCAgACMaHVwRDB7BVMpwGZz4Fpd93u
+# mXK+e7wbckxoNwDE/B0JTjqPHObEuSZyekwhpDu1DvwJDSA/aEUdla8KlZSISn0V
+# Wwl5qu/eh15GVhzPvbhhRYo5U482wGYl15rC/ncAlAhiCaz9zS4jzTpFyw5tgy31
+# rME3kONues6Ue8NgsevVeXtGwG8XpjonkHpWGMqKm8rpAxR3aA+bKBRtAWp2ge+P
+# Vdt18F9ohhR/htgP6S+lMCDpJFHlx4DejDyQwd5XFUaSaxaWfn2m3zSb+otDu2wh
+# G7Svp4KIroE/MqLAzr2uh7knAQx6OZ3KB0VJhSyqZokaACTTP089+1Sr3amWwysv
+# qXILEA3QammVtNficyQBksilOhpK/UTR9EOKE1d2lCScOWfau6x3tgXWWL+GckTd
+# OO4+mNfjCOeyDUKOBbq6zchAyq2u7i/XrV0mvLZKMRq5o+/tOuLDhSUZpheqZ9F0
+# 6H+wX2JnkJMbW7juBWkMlcTukcv5BWuT8CB0oqgBO3/ppSJ5PkNuulNKizvXRURQ
+# knqaF32erxkhy7uyXAtVTNErMYnzY5ANPVImBH9vtxLIyFsUbydl5ULGcVq7Olaa
+# Yx/HkrAUaR+o8y/BRsInjJaw0FWtftJYdFZmhx6xPIKValIIZrl49olDKMWDDtRJ
+# GF9eLhVpYdzfGecz4g==
 # SIG # End signature block

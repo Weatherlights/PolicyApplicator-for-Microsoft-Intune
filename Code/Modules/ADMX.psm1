@@ -25,21 +25,27 @@ function Get-ADMXPolicyForRegistry {
         [string]$DataType
     );
 
+    $PolicyNameXMLCompatible = ConvertTo-XmlCompatibleString $PolicyName;
+    $ValueNameXMLCompatible = ConvertTo-XmlCompatibleString $ValueName;
+    $ClassXmlCompatible = ConvertTo-XmlCompatibleString $Class;
+    $KeyXmlCompatible = ConvertTo-XmlCompatibleString $Key;
+    $CategoryNameXmlCompatible = ConvertTo-XmlCompatibleString $CategoryName;
+
     switch ( $DataType ) {
         "String" {
-            $element = '<text id="'+$PolicyName+'-value" valueName="'+$ValueName+'" required="true"/>'
+            $element = '<text id="'+$PolicyNameXMLCompatible+'-value" valueName="'+$ValueNameXMLCompatible+'" required="true"/>'
         }
         "DWord" {
-            $element = '<decimal id="'+$PolicyName+'-value" valueName="'+$ValueName+'" required="true"/>'
+            $element = '<decimal id="'+$PolicyNameXMLCompatible+'-value" valueName="'+$ValueNameXMLCompatible+'" required="true"/>'
         }
         "MultiString" {
-    		 $element = '<multiText id="'+$PolicyName+'-value" valueName="'+$ValueName+'" required="true"/>'
+    		 $element = '<multiText id="'+$PolicyNameXMLCompatible+'-value" valueName="'+$ValueNameXMLCompatible+'" required="true"/>'
         }
     }
 		$policy = '
 <!-- Policy '+$PolicyName+' -->
-<policy name="'+$PolicyName+'" class="'+$Class+'" displayName="$(string.Nothing)" explainText="$(string.Nothing)" key="'+$Key+'" valueName="'+$ValueName+'" >
-	<parentCategory ref="'+$CategoryName+'" />
+<policy name="'+$PolicyNameXMLCompatible+'" class="'+$ClassXmlCompatible+'" displayName="$(string.Nothing)" explainText="$(string.Nothing)" key="'+$KeyXmlCompatible+'" valueName="'+$ValueNameXMLCompatible+'" >
+	<parentCategory ref="'+$CategoryNameXmlCompatible+'" />
 	<supportedOn ref="SupportedOn" />
 	<elements>'+$element+'</elements>
 </policy>
@@ -55,22 +61,27 @@ function Get-ADMXPolicyForList {
         [string]$Class,
         [string]$Key
     );
+    $CategoryNameXmlCompatible = ConvertTo-XmlCompatibleString $CategoryName;
+    $PolicyNameXMLCompatible = ConvertTo-XmlCompatibleString $PolicyName;
+    $ClassXmlCompatible = ConvertTo-XmlCompatibleString $Class;
+    $KeyXmlCompatible = ConvertTo-XmlCompatibleString $Key;
+    
 
 
 		$policy = '
-<!-- Policy '+$PolicyName+' -->
-<policy name="'+$PolicyName+'" class="'+$Class+'" displayName="$(string.Nothing)" explainText="$(string.Nothing)" key="'+$Key+'" valueName="value" >
-	<parentCategory ref="'+$CategoryName+'" />
+<!-- Policy '+$PolicyNameXMLCompatible+' -->
+<policy name="'+$PolicyNameXMLCompatible+'" class="'+$ClassXmlCompatible+'" displayName="$(string.Nothing)" explainText="$(string.Nothing)" key="'+$KeyXmlCompatible+'" valueName="value" >
+	<parentCategory ref="'+$CategoryNameXmlCompatible+'" />
 	<supportedOn ref="SupportedOn" />
 	<elements>
-	<enum id="'+$PolicyName+'-operation" valueName="operation" required="true">
+	<enum id="'+$PolicyNameXMLCompatible+'-operation" valueName="operation" required="true">
         <item displayName="$(string.Nothing)">
             <value>
                 <string>Replace</string>
             </value>
         </item>
     </enum>
-		<list id="'+$PolicyName+'-list" key="'+$Key+'\list"/>
+		<list id="'+$PolicyNameXMLCompatible+'-list" key="'+$KeyXmlCompatible+'\list"/>
 	</elements>
 </policy>
 '
@@ -85,15 +96,18 @@ function Get-ADMXPolicyForIni {
         [string]$Class,
         [string]$Key
     );
-
+    $CategoryNameXmlCompatible = ConvertTo-XmlCompatibleString $CategoryName;
+    $PolicyNameXMLCompatible = ConvertTo-XmlCompatibleString $PolicyName;
+    $ClassXmlCompatible = ConvertTo-XmlCompatibleString $Class;
+    $KeyXmlCompatible = ConvertTo-XmlCompatibleString $Key;
 
 		$policy = '
-<!-- Policy '+$PolicyName+' -->
-<policy name="'+$PolicyName+'" class="'+$Class+'" displayName="$(string.Nothing)" explainText="$(string.Nothing)" key="'+$Key+'" valueName="value" >
-	<parentCategory ref="'+$CategoryName+'" />
+<!-- Policy '+$CategoryNameXmlCompatible+' -->
+<policy name="'+$CategoryNameXmlCompatible+'" class="'+$ClassXmlCompatible+'" displayName="$(string.Nothing)" explainText="$(string.Nothing)" key="'+$KeyXmlCompatible+'" valueName="value" >
+	<parentCategory ref="'+$CategoryNameXmlCompatible+'" />
 	<supportedOn ref="SupportedOn" />
 	<elements>
-	<enum id="'+$PolicyName+'-operation" valueName="operation" required="true">
+	<enum id="'+$PolicyNameXMLCompatible+'-operation" valueName="operation" required="true">
          <item displayName="$(string.Nothing)">
             <value>
                 <string>Create</string>
@@ -115,9 +129,9 @@ function Get-ADMXPolicyForIni {
             </value>
         </item>
     </enum>
-		<text id="'+$PolicyName+'-section" maxLength="255" valueName="section" required="true"/>
-		<text id="'+$PolicyName+'-key" maxLength="255" valueName="key" required="true"/>
-		<text id="'+$PolicyName+'-value" maxLength="255" valueName="value" required="true"/>
+		<text id="'+$PolicyNameXMLCompatible+'-section" maxLength="255" valueName="section" required="true"/>
+		<text id="'+$PolicyNameXMLCompatible+'-key" maxLength="255" valueName="key" required="true"/>
+		<text id="'+$PolicyNameXMLCompatible+'-value" maxLength="255" valueName="value" required="true"/>
 	</elements>
 </policy>
 '
@@ -134,14 +148,18 @@ function Get-ADMXPolicyForXml {
         [string]$Key
     );
 
+    $CategoryNameXmlCompatible = ConvertTo-XmlCompatibleString $CategoryName;
+    $PolicyNameXMLCompatible = ConvertTo-XmlCompatibleString $PolicyName;
+    $ClassXmlCompatible = ConvertTo-XmlCompatibleString $Class;
+    $KeyXmlCompatible = ConvertTo-XmlCompatibleString $Key;
 
 		$policy = '
-<!-- Policy '+$PolicyName+' -->
-<policy name="'+$PolicyName+'" class="'+$Class+'" displayName="$(string.Nothing)" explainText="$(string.Nothing)" key="'+$Key+'" valueName="value" >
-	<parentCategory ref="'+$CategoryName+'" />
+<!-- Policy '+$PolicyNameXMLCompatible+' -->
+<policy name="'+$PolicyNameXMLCompatible+'" class="'+$ClassXmlCompatible+'" displayName="$(string.Nothing)" explainText="$(string.Nothing)" key="'+$KeyXmlCompatible+'" valueName="value" >
+	<parentCategory ref="'+$CategoryNameXmlCompatible+'" />
 	<supportedOn ref="SupportedOn" />
 	<elements>
-	<enum id="'+$PolicyName+'-operation" valueName="operation" required="true">
+	<enum id="'+$PolicyNameXMLCompatible+'-operation" valueName="operation" required="true">
          <item displayName="$(string.Nothing)">
             <value>
                 <string>Create</string>
@@ -163,9 +181,9 @@ function Get-ADMXPolicyForXml {
             </value>
         </item>
     </enum>
-		<list id="'+$PolicyName+'-namespace" key="'+$key+'\namespace"/>
-		<text id="'+$PolicyName+'-xpath" maxLength="255" valueName="xpath" required="true"/>
-		<text id="'+$PolicyName+'-value" maxLength="255" valueName="value" required="true"/>
+		<list id="'+$PolicyNameXMLCompatible+'-namespace" key="'+$KeyXmlCompatible+'\namespace"/>
+		<text id="'+$PolicyNameXMLCompatible+'-xpath" maxLength="255" valueName="xpath" required="true"/>
+		<text id="'+$PolicyNameXMLCompatible+'-value" maxLength="255" valueName="value" required="true"/>
 	</elements>
 </policy>
 '
@@ -183,14 +201,18 @@ function Get-ADMXPolicyForJSon {
         [string]$Key
     );
 
+    $CategoryNameXmlCompatible = ConvertTo-XmlCompatibleString $CategoryName;
+    $PolicyNameXMLCompatible = ConvertTo-XmlCompatibleString $PolicyName;
+    $ClassXmlCompatible = ConvertTo-XmlCompatibleString $Class;
+    $KeyXmlCompatible = ConvertTo-XmlCompatibleString $Key;
 
 		$policy = '
-<!-- Policy '+$PolicyName+' -->
-<policy name="'+$PolicyName+'" class="'+$Class+'" displayName="$(string.Nothing)" explainText="$(string.Nothing)" key="'+$Key+'" valueName="value" >
-	<parentCategory ref="'+$CategoryName+'" />
+<!-- Policy '+$PolicyNameXMLCompatible+' -->
+<policy name="'+$PolicyNameXMLCompatible+'" class="'+$ClassXmlCompatible+'" displayName="$(string.Nothing)" explainText="$(string.Nothing)" key="'+$KeyXmlCompatible+'" valueName="value" >
+	<parentCategory ref="'+$CategoryNameXmlCompatible+'" />
 	<supportedOn ref="SupportedOn" />
 	<elements>
-	<enum id="'+$PolicyName+'-operation" valueName="operation" required="true">
+	<enum id="'+$PolicyNameXMLCompatible+'-operation" valueName="operation" required="true">
          <item displayName="$(string.Nothing)">
             <value>
                 <string>Create</string>
@@ -212,8 +234,8 @@ function Get-ADMXPolicyForJSon {
             </value>
         </item>
     </enum>
-		<text id="'+$PolicyName+'-jsonpath" maxLength="255" valueName="jsonpath" required="true"/>
-		<text id="'+$PolicyName+'-value" maxLength="255" valueName="value" required="true"/>
+		<text id="'+$PolicyNameXMLCompatible+'-jsonpath" maxLength="255" valueName="jsonpath" required="true"/>
+		<text id="'+$PolicyNameXMLCompatible+'-value" maxLength="255" valueName="value" required="true"/>
 	</elements>
 </policy>
 '
@@ -257,8 +279,13 @@ function Get-ADMXTemplate {
         [string]$Class
     )
 
-    $registryKey = Get-PolicyRegistryKey -AppName $AppName -AppPolicyName $AppPolicyName
-    $PolicyName = "$AppName-$AppPolicyName-File"
+    $AppNameXmlCompatible = ConvertTo-XmlCompatibleString $AppName;
+    $AppPolicyNameXMLCompatible = ConvertTo-XmlCompatibleString $AppPolicyName;
+    $FileTypeXmlCompatible = ConvertTo-XmlCompatibleString $FileType;
+    $ClassXmlCompatible = ConvertTo-XmlCompatibleString $Class;
+
+    $registryKey = Get-PolicyRegistryKey -AppName $AppNameXmlCompatible -AppPolicyName $AppPolicyNameXMLCompatible
+    $PolicyName = "$AppNameXmlCompatible-$AppPolicyNameXMLCompatible-File"
 
 $ADMXContent = '<?xml version="1.0" encoding="utf-8"?>
 <!--
@@ -269,7 +296,7 @@ Note that this template may only work when the PolicyApplicator Client is instal
 -->
 <policyDefinitions xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="1.0" xsi:schemaLocation="" schemaVersion="1.0" xmlns="http://www.microsoft.com/GroupPolicy/PolicyDefinitions" >
 	<policyNamespaces >
-		<target prefix="' + $AppName + '" namespace="'+$AppName+'.'+ $AppPolicyName +'.Policies" />
+		<target prefix="' + $AppNameXmlCompatible + '" namespace="'+$AppNameXmlCompatible+'.'+ $AppPolicyNameXMLCompatible +'.Policies" />
 	</policyNamespaces>
 	<resources minRequiredRevision="1.0" fallbackCulture="en-us" />
 	<supportedOn >
@@ -279,11 +306,11 @@ Note that this template may only work when the PolicyApplicator Client is instal
 	</supportedOn>
 	<categories >'+$categories+'</categories>
     <policies >
-    <policy name="'+$PolicyName+'" class="'+$Class+'" displayName="$(string.Nothing)" explainText="$(string.Nothing)" key="'+$registryKey+'" valueName="Mode" >
-	<parentCategory ref="'+$AppPolicyName+'" />
+    <policy name="'+$PolicyName+'" class="'+$ClassXmlCompatible+'" displayName="$(string.Nothing)" explainText="$(string.Nothing)" key="'+$registryKey+'" valueName="Mode" >
+	<parentCategory ref="'+$AppPolicyNameXMLCompatible+'" />
 	<supportedOn ref="SupportedOn" />
         <enabledValue>
-    <string>'+$FileType+'</string>
+    <string>'+$FileTypeXmlCompatible+'</string>
     </enabledValue>
     <disabledValue>
         <string>Disabled</string>
@@ -361,8 +388,8 @@ Note that this template may only work when the PolicyApplicator Client is instal
 # SIG # Begin signature block
 # MIIk+QYJKoZIhvcNAQcCoIIk6jCCJOYCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQULapvoywpFraiKqUDxNoJpRla
-# nA+ggh4pMIIFCTCCA/GgAwIBAgIQDapMmE8NUKJDb44cpXT3cDANBgkqhkiG9w0B
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUOZCzztoUkzaEZI1uCHD6nMA+
+# uSaggh4pMIIFCTCCA/GgAwIBAgIQDapMmE8NUKJDb44cpXT3cDANBgkqhkiG9w0B
 # AQsFADB8MQswCQYDVQQGEwJHQjEbMBkGA1UECBMSR3JlYXRlciBNYW5jaGVzdGVy
 # MRAwDgYDVQQHEwdTYWxmb3JkMRgwFgYDVQQKEw9TZWN0aWdvIExpbWl0ZWQxJDAi
 # BgNVBAMTG1NlY3RpZ28gUlNBIENvZGUgU2lnbmluZyBDQTAeFw0yMTA0MjAwMDAw
@@ -528,33 +555,33 @@ Note that this template may only work when the PolicyApplicator Client is instal
 # bWl0ZWQxJDAiBgNVBAMTG1NlY3RpZ28gUlNBIENvZGUgU2lnbmluZyBDQQIQDapM
 # mE8NUKJDb44cpXT3cDAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAigAoAA
 # oQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4w
-# DAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQURv2H76B3KkmlRqnmGjomQpGf
-# +RswDQYJKoZIhvcNAQEBBQAEggEAjjQljECLwlrOtnak1KLN8hWo6iiXC4uC8hZZ
-# Qsb/gtEdSkX6h/I3O6i6Q/hw+IWn1/sw3xQmTMnoZ6ZXdeNJYCv3bKMlSBc80ih1
-# 6QDobsK0egmYepjx0QTt/URaidrdEo2vqlPjMO0CAPRtDcSWoSHVgV4peubv6gHc
-# YM7TLZzQmFSEqM/kHrQl1Tm4T3RHL/oiaRs15Is7B28MGXWRIsJ8Ws6YsgQf3Kgh
-# XshyMBjHvZWR4Iw6AOT7k+Bj3h/WQHB67KNGKL98v2cYGzh/LSsZ9WeToB7Jxea3
-# 2fNxggnYosCbwGuxurG+yzOKupORdengMV4xIrp27eF8fUux5qGCBAQwggQABgkq
+# DAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUTYYNo4iBsOEve24qzpuj3kcx
+# s10wDQYJKoZIhvcNAQEBBQAEggEAPneIlv0QddO2cMBoLBfVoUXqhd4UA97ZIFdM
+# LRYyqpHFWV0kseo8vcXESKpDJzvaKiuuWg+b+BUbZuVRNBQQ3y8kQNzkvSA0Rjzy
+# BOOF8m1azA+3Bbm+bhcopLUwFtNYWdVxDLcy3+1IU6o1MogGiX92RQ9d8f+uIH8V
+# ZzboY8+QbfATKNIZWLEDns+Rl1eowaij7StCe9RmYfN5WPj0StPnMLeyh1WxnEIf
+# 64QAt5Gq7dPyAT4i/RaqyXGZFYUHgeHmfhszGiK90TGcVkjlyzRkOsFKBjQuC5XX
+# l645yJktCR0pADoXqJEFwewqRDMFFZc/1yW6aBFM/T7UULM3R6GCBAQwggQABgkq
 # hkiG9w0BCQYxggPxMIID7QIBATBrMFYxCzAJBgNVBAYTAlBMMSEwHwYDVQQKExhB
 # c3NlY28gRGF0YSBTeXN0ZW1zIFMuQS4xJDAiBgNVBAMTG0NlcnR1bSBUaW1lc3Rh
 # bXBpbmcgMjAyMSBDQQIRAPFkJYwJtuJ74g4yYI5L9KgwDQYJYIZIAWUDBAICBQCg
 # ggFXMBoGCSqGSIb3DQEJAzENBgsqhkiG9w0BCRABBDAcBgkqhkiG9w0BCQUxDxcN
-# MjEwOTE3MDkwOTM1WjA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCAbWb/o5XcrrPZD
-# u3mstI6BWHhPIcVUrhNHbToaPgXF0zA/BgkqhkiG9w0BCQQxMgQwhqoQUtwARAie
-# T0E4lKlwfCR9uE8+H22GgONxAbE8TFH/DStbJ4H8hU95wpIvyW/3MIGgBgsqhkiG
+# MjEwOTI3MTAzODUyWjA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCAbWb/o5XcrrPZD
+# u3mstI6BWHhPIcVUrhNHbToaPgXF0zA/BgkqhkiG9w0BCQQxMgQwB8zxlb7R1fvH
+# t2q6vhSGR3uUiTD9P/I12sWwP2wdn4Wgj/hjtTlHmuoYOH6E80kyMIGgBgsqhkiG
 # 9w0BCRACDDGBkDCBjTCBijCBhwQU0xHGlTEbjOc/1bVTGKzfWYrhmxMwbzBapFgw
 # VjELMAkGA1UEBhMCUEwxITAfBgNVBAoTGEFzc2VjbyBEYXRhIFN5c3RlbXMgUy5B
 # LjEkMCIGA1UEAxMbQ2VydHVtIFRpbWVzdGFtcGluZyAyMDIxIENBAhEA8WQljAm2
-# 4nviDjJgjkv0qDANBgkqhkiG9w0BAQEFAASCAgBiKnM/zCxRIuczW0e/2rGRuNSG
-# 1qRRVge6DOyRl7D9sJ+KqT6L0DyE34Bt7Wev5FBU3hTtfyd5sMpiP1QsryERYl1M
-# 2tiJAUf0snQCJsjUdex8I5KFT4FDKfe7Zh5dz6mmQVbDpo3b5WI15AGDr9HvoTc6
-# NV8O0TQ/ic8Q2bm3+QAw08//bAlq/T+3Rc8fKPBXpNx38W7EepcdJpWWniPg9ebl
-# DazPQO8rWRnWQHFf3Sk+nR8AL4hBW4t4Qs+i5uyW9+wv4f5rDk6y0w9aTJ7cA+zS
-# tQH06LadQSm6XVEmfngSRtFLtrwbGHWgu/wdnFpBBUKZN34KVouTnQSJBV1YOIgU
-# oljYm7nxje4BgD8JmSm4+arSMAhpRzlemvBZ9P+1ey8Ub/PQNqTPRlSJ/TD8qSde
-# agwj637dYGAqKY4cCygdYjTShaxM3yNGF08+WfpjHOB+PTRmBAg5VEg30hSUU9DC
-# A51esZw8uFdLW4aquggaeJnIZmBJHMcJDX23AW+5Pc0vdn79Z1CL7uoJPkVFALxD
-# OXcwcOqyXh6RPUCU42F74sgrKJiwYEFEx/qS6sMLmeHBz/NOIDo8JJiGugGjaKCS
-# EF2fCwt0/aMzQsLsYriDRdfWZNrUqS2Hbv/uBbodp3A8r0oKVgdoaUtDwN9nJsev
-# adK6jo/vho4b1EAFvg==
+# 4nviDjJgjkv0qDANBgkqhkiG9w0BAQEFAASCAgANCZ460DxpfOdpxNPf0DNYUmgi
+# 2JPXBGd1iIV/h9UtIZiB91I9ufbaxat2eFpDq2EKtsI1y+s0jvxuImbMJcmukK1t
+# vhC/0fieMlKOyVv2BXyExzT5wKw/6rB4MqttlZL7MCMHFRnMolDNl/i74tm9N9Vz
+# 664AfwZc8uohdTG1Ww7jnb8/aScQMXjPYdlcrVudWYoiuxJT/EIEPSJiOEeCfwDe
+# wmwDy4w2sh/7ixY4/nvC12lwKpOnS7pCwhJMObGc/RXfXJsIwr61w8NWAOMAfN/N
+# 71oOFf1rqUls73n2PqYr5OZ3uXfIjJWGzY2gt9qDjOBThxqLB+Jk+8ygIArlT1n5
+# yVjUMmDqqPbEnwXjW3CfLexJL8hCAnuX8nNKBdeEM9iKGHxZQ46+rRdlg6W69Irz
+# 1K6zXFmBWpotYGgBYg+oWMw61tooLzYt65HA53bfpLMYuic7P3xnpozvtlDyboaH
+# erhZ6mE/PVWeigwX3aPHGzPJ6EgEk4WqlfBQYelZN5Vm7NZZMZGmtBR50/HnD0j7
+# Vgd7hkZ0dMeT3OJN+nU6WrBD9kr2bweyMPOPKm2adsk8YkCj1T9om+MVXmYxTyO3
+# C7WZl43ZQt3tJf8Z+WczdSNdqaxzLZktWtb0ExeL5NS+kD0Ax2cX/34rpjdtSdTt
+# qp8jxl7ZBliBZxRu4w==
 # SIG # End signature block
