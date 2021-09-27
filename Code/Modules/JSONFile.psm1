@@ -299,18 +299,21 @@ param (
                         if ( !$fileDoesNotExistYet ) {
                             $RecreateFileRules = Invoke-ParseJSonStructure -InputObject $json;
                             ForEach ( $rule in $RecreateFileRules ) {
+                                
                                 $newJsonObj = Set-JSonNodeByJsonPath -Path $rule.Path -InputObject $newJsonObj -Value $rule.Value -Operation Create;
                             }
                         }
                         ForEach ( $rule in $Rules ) {
-                            $newJsonObj = Set-JSonNodeByJsonPath -InputObject $newJsonObj -Path $rule.JSONPath -value $rule.Value -Operation $rule.Operation;
+                            $ruleValueAsDataType = Convert-StringToJsonDataType -InputObject $rule.Value -DataType $rule.DataType;
+                            $newJsonObj = Set-JSonNodeByJsonPath -InputObject $newJsonObj -Path $rule.JSONPath -value $ruleValueAsDataType -Operation $rule.Operation;
                         }
 
                     }
                     "Replace" {
                     # Recreate file from scratch.
                         ForEach ( $rule in $Rules ) {
-                            $newJsonObj = Set-JSonNodeByJsonPath -InputObject $newJsonObj -Path $rule.JSONPath -value $rule.Value -Operation $rule.Operation;
+                            $ruleValueAsDataType = Convert-StringToJsonDataType -InputObject $rule.Value -DataType $rule.DataType;
+                            $newJsonObj = Set-JSonNodeByJsonPath -InputObject $newJsonObj -Path $rule.JSONPath -value $ruleValueAsDataType -Operation $rule.Operation;
                         }
                         
                     }
@@ -322,7 +325,8 @@ param (
                                 $newJsonObj = Set-JSonNodeByJsonPath -Path $rule.Path -InputObject $newJsonObj -Value $rule.Value -Operation Create;
                             }
                             ForEach ( $rule in $Rules ) {
-                                $newJsonObj = Set-JSonNodeByJsonPath -InputObject $newJsonObj -Path $rule.JSONPath -value $rule.Value -Operation $rule.Operation;
+                                $ruleValueAsDataType = Convert-StringToJsonDataType -InputObject $rule.Value -DataType $rule.DataType;
+                                $newJsonObj = Set-JSonNodeByJsonPath -InputObject $newJsonObj -Path $rule.JSONPath -value $ruleValueAsDataType -Operation $rule.Operation;
                             }
                         }
                     }
@@ -347,12 +351,34 @@ param (
        return $Compliance
 }
 
+function Convert-StringToJsonDataType {
+param(
+    [string]$InputObject,
+    [ValidateSet("Boolean","Int32","String")][string]$DataType
+)
+
+    if ( $DataType -eq "Boolean" ) {
+        if ( $InputObject -eq "True" ) {
+            return $true;
+        } elseif ( $InputObject -eq "False" ) {
+            return $false;
+        }
+        else {
+            throw "Invalid Input format"
+        }
+    } elseif ( $DataType -eq "Int32" ) {
+        return [Int32]$InputObject
+    } else {
+        return $InputObject;
+    }
+}
+
 # Set-AuthenticodeSignature "$env:userprofile\GitHub\PolicyApplicator-for-Microsoft-Intune\Code\Modules\JSONFile.psm1" @(Get-ChildItem cert:\CurrentUser\My -codesigning)[0] -TimestampServer http://time.certum.pl
 # SIG # Begin signature block
 # MIIk+QYJKoZIhvcNAQcCoIIk6jCCJOYCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUCwkbfpZbi2bWKVVCSIrWdcDE
-# JLyggh4pMIIFCTCCA/GgAwIBAgIQDapMmE8NUKJDb44cpXT3cDANBgkqhkiG9w0B
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU54hOuR2BzGpO7tq60xjssktz
+# sV+ggh4pMIIFCTCCA/GgAwIBAgIQDapMmE8NUKJDb44cpXT3cDANBgkqhkiG9w0B
 # AQsFADB8MQswCQYDVQQGEwJHQjEbMBkGA1UECBMSR3JlYXRlciBNYW5jaGVzdGVy
 # MRAwDgYDVQQHEwdTYWxmb3JkMRgwFgYDVQQKEw9TZWN0aWdvIExpbWl0ZWQxJDAi
 # BgNVBAMTG1NlY3RpZ28gUlNBIENvZGUgU2lnbmluZyBDQTAeFw0yMTA0MjAwMDAw
@@ -518,33 +544,33 @@ param (
 # bWl0ZWQxJDAiBgNVBAMTG1NlY3RpZ28gUlNBIENvZGUgU2lnbmluZyBDQQIQDapM
 # mE8NUKJDb44cpXT3cDAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAigAoAA
 # oQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4w
-# DAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQU18qGTHBIe9bHJVIGuB3BFWa8
-# Zi8wDQYJKoZIhvcNAQEBBQAEggEAT8P+LzqTiZ9yUEZd65s9lOkbBRS0lnnT8V36
-# ZwahHGT9dVCA1NhP0j6ldeUc62gRDi1fH8wDws83n/eEqqRc+uO+O8pBmzfO1mR+
-# TUxrdsLrN+M5jI5ztl1SV73nHT+ipBmhuP6SZGPPxPCF+G5Qe/bN5uDjiUzpQ6Op
-# W0IowlCL/wHxE7GOeUgpVYBWz1Af4SI3xUzCd8cbpaL9nSm1mHPJbG4wlOj9bZx0
-# GuugxfWwiGyDGOBSgBqerSFRusf8LE5dF2u4NHjqscd84U0/O2ja4nMamG3wPmUq
-# X7Com2/crcMIP2rEuCX2YiMoiCv++Fe5LjPlCUuQxXYtOFdlzKGCBAQwggQABgkq
+# DAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUi3t/PszRPRv9188iIassG1rj
+# zakwDQYJKoZIhvcNAQEBBQAEggEASawuBgpy25cDd10eGYCCfWBa71cx8IJTMNAF
+# 9OzSDzXZ68eBhDCdqXyU/jVzCl+8gxoPwIVfNEsCbAu8ftJBcL2Dj8na40xiyiSu
+# EF1RrTlWYme6wqswAfqeJDIdu0sw7Uv0Bf3qXNAIBwt7OGpYboUGe51Cfa/n47M+
+# xyopF3EiSSr6hY2vtQ1gHq2TPiKtFBhtxxfjTHJf9dh26ioS8GzOQmqXOZ61m7V8
+# EFi79vNEaMkHLYoXsosw7b79jL90aBDbC+KJl/JEK0TFdJGwll/qaJ6q/cJwDhce
+# B71mtSFfP7gT2dbbzbnfHUWYLFSGS3OHfhqsDYkYmFdxyGucXKGCBAQwggQABgkq
 # hkiG9w0BCQYxggPxMIID7QIBATBrMFYxCzAJBgNVBAYTAlBMMSEwHwYDVQQKExhB
 # c3NlY28gRGF0YSBTeXN0ZW1zIFMuQS4xJDAiBgNVBAMTG0NlcnR1bSBUaW1lc3Rh
 # bXBpbmcgMjAyMSBDQQIRAPFkJYwJtuJ74g4yYI5L9KgwDQYJYIZIAWUDBAICBQCg
 # ggFXMBoGCSqGSIb3DQEJAzENBgsqhkiG9w0BCRABBDAcBgkqhkiG9w0BCQUxDxcN
-# MjEwOTI3MTUzMjA3WjA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCAbWb/o5XcrrPZD
-# u3mstI6BWHhPIcVUrhNHbToaPgXF0zA/BgkqhkiG9w0BCQQxMgQwIvObnBXImvu/
-# NauOVv8KatOdt8OtJfkpygZQFwCherP+OEl/u8svDgyoUSBYGlSjMIGgBgsqhkiG
+# MjEwOTI3MTYwNDQ2WjA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCAbWb/o5XcrrPZD
+# u3mstI6BWHhPIcVUrhNHbToaPgXF0zA/BgkqhkiG9w0BCQQxMgQw44NTJsVEMyC+
+# WPQmq5jfjzpA8tCoX87RdLodqwAAvJffTSU5nKwPc8XG+cbmbnDIMIGgBgsqhkiG
 # 9w0BCRACDDGBkDCBjTCBijCBhwQU0xHGlTEbjOc/1bVTGKzfWYrhmxMwbzBapFgw
 # VjELMAkGA1UEBhMCUEwxITAfBgNVBAoTGEFzc2VjbyBEYXRhIFN5c3RlbXMgUy5B
 # LjEkMCIGA1UEAxMbQ2VydHVtIFRpbWVzdGFtcGluZyAyMDIxIENBAhEA8WQljAm2
-# 4nviDjJgjkv0qDANBgkqhkiG9w0BAQEFAASCAgBYG1nDdWmTaf5KB9qvykpcvb++
-# tWnlA3XnIqzyY7DRtHWVPA5HO7/TPBgjs6eFAiMjQqeBPZl72icsmtAvWc3hpfxe
-# Ij8hGW+fGSQFboQ8YwU/Ii5ssaAtSGiSCeS+3C/CDcDb2s1ysQgsZKd9tvBXSjtE
-# 9AL12NshlpTeN4ZqJB+TwikHKrBXTrY9m+7dc4ga/oxSfOj7lBnOifLwTorb29Xd
-# w/zaaSwY1BvBx4nnJPpfL/tD6Zb7gmd4SI2/S6RQByecCe3CI3k6m+0fmnCLXwOL
-# BFTn5zbaiRQmWspUL8tAswJs7vbadO+8O3UmsGs/DObAjJ0uzvQ9rYSQULgEkIJ2
-# DvxMy0YUCrIjYjdwTRtKbhYCb2UyzvBrH9IT27qcQYkrszu8pYI6cNLQe9dQgKie
-# FxyXQFn9qkwlxeaTTz0AUWqD8VQWQn5LfmZV+7jl48d6oVYZ9mJ66QOG7VuX6U/3
-# CNJUM78cEZ1UWTpTKsPqWrqZuXYDPLFyLIWualHt40AJeFG+FN4FFZA/ZGO+lQCm
-# dkjL4cQk96O1e1zlZGZ0hn6h1VRamF1myS4t3Pa5gmiTtAx0SDBfh5ZDBoh4KctQ
-# 6ukNgIafe0ixi11dRwlw5JU5kLwSed1ATITnspHSnzX1BXRzib3FdNGPH137FKzi
-# xwfVIic3yz2CSePX0A==
+# 4nviDjJgjkv0qDANBgkqhkiG9w0BAQEFAASCAgDDe2FtbiklZdHIZfyqH6Y4Ghch
+# 806eIJ3ciazUR8/w7CrjEbwr2oa7NNLga22/hjVqcqYFQkSpzieYrRaYUzSQ1Qk3
+# 2J6NKb5K35sNg8krAwLbVLOFIUm2XeIErsTL83egOK+rZEPvfSFX470ZModxoOGe
+# wVWQXp9bn0CIqkHe7G9BDs22eWp73lokvlqwyA+vIGzexQv0BBG6mp5SYVB9BuLT
+# CLldTHuhwObg/uCxyG/QmIazQH1eFT/eV7gMiv1hu7+pjkOa23AKlRz1V5CbLSFv
+# 7hFm9FrK/0f0oCI9zEomH62503i93NajpfDD8XH9xC5I60HOZ8X2qpgDzlrMTcxg
+# 73WRMqbU4UJ1D7r00OPmHWAapX1F8LbBejBGIJtmxj7iT1t64GNw5yQBETE1xQ5C
+# C55QICWHHD7+uZmK/lHZrW+Mo1p7wtakKzcIiPeGkqHNn905IbwKM0fqR3jdFXW1
+# 8YMuEk5W0KbXdC+VE1zRac3nFtnLMv3EwkhV6k4kJi3c8pzwtGpsfwl9xowKHlPK
+# iHBHN4DoaywVe2e1fmMeieTLgazLaZ8PKRu18pPa+H2iTNNmYiIzn4XU9FmL17Yj
+# //v/XznmHbmKqCLK6Llg6Qqrjh9OOIiO6njSsLaHjGXBVgcQjVmSt68jyJt3znLf
+# dxbsVtIdsP4/O59H4A==
 # SIG # End signature block

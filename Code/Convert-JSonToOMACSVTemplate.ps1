@@ -154,6 +154,7 @@ For ( $i = 0; $i -lt $policyMap.count; $i++ ) {
     $policyValue = $policyMap[$i].Value;
     $policyOperation = $policyMap[$i].Operation;
     $policyjsonPath = $policyMap[$i].jsonPath;
+    $dataType = $policyValue.getType().Name;
 
     $policy = Get-ADMXPolicyForJson -PolicyName $policyName -CategoryName $policyCategoryName -Class $Context -Key "$regkey\$i"
     $policies += $policy;
@@ -164,11 +165,13 @@ For ( $i = 0; $i -lt $policyMap.count; $i++ ) {
     $policyValueXmlCompatible = ConvertTo-XmlCompatibleString $policyValue;
     $policyOperationXmlCompatible = ConvertTo-XmlCompatibleString $policyOperation
     $policyjsonPathXmlCompatible = ConvertTo-XmlCompatibleString $policyjsonPath -IgnoreQuotes;
+    $dataTypeXmlCompatible = ConvertTo-XmlCompatibleString $dataType;
 
     $configuredValue = '<enabled/>
 <data id="'+$policyNameXmlCompatible+'-value" value='''+$policyValueXmlCompatible+'''/>
 <data id="'+$policyNameXmlCompatible+'-operation" value='''+$policyOperationXmlCompatible+'''/>
-<data id="'+$policyNameXmlCompatible+'-jsonpath" value='''+$policyjsonPathXmlCompatible+'''/>'
+<data id="'+$policyNameXmlCompatible+'-jsonpath" value='''+$policyjsonPathXmlCompatible+'''/>
+<data id="'+$policyNameXmlCompatible+'-datatype" value='''+$dataTypeXmlCompatible+'''/>'
 
      $omaConfig = [PSCustomObject]@{
             "@odata.type" = "#microsoft.graph.omaSettingString";
@@ -200,8 +203,8 @@ $omaConfigs | Select-Object -Property displayName,description,omauri,value | Exp
 # SIG # Begin signature block
 # MIIk+QYJKoZIhvcNAQcCoIIk6jCCJOYCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU1XqS5RYVcBc5JJOh4ybdc2D6
-# Yeqggh4pMIIFCTCCA/GgAwIBAgIQDapMmE8NUKJDb44cpXT3cDANBgkqhkiG9w0B
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU9dXZtxXTalr41WGSwyMRHQjK
+# ZxOggh4pMIIFCTCCA/GgAwIBAgIQDapMmE8NUKJDb44cpXT3cDANBgkqhkiG9w0B
 # AQsFADB8MQswCQYDVQQGEwJHQjEbMBkGA1UECBMSR3JlYXRlciBNYW5jaGVzdGVy
 # MRAwDgYDVQQHEwdTYWxmb3JkMRgwFgYDVQQKEw9TZWN0aWdvIExpbWl0ZWQxJDAi
 # BgNVBAMTG1NlY3RpZ28gUlNBIENvZGUgU2lnbmluZyBDQTAeFw0yMTA0MjAwMDAw
@@ -367,33 +370,33 @@ $omaConfigs | Select-Object -Property displayName,description,omauri,value | Exp
 # bWl0ZWQxJDAiBgNVBAMTG1NlY3RpZ28gUlNBIENvZGUgU2lnbmluZyBDQQIQDapM
 # mE8NUKJDb44cpXT3cDAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAigAoAA
 # oQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4w
-# DAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUkUr+u5DpJeFqMH/K7t/700dU
-# WzYwDQYJKoZIhvcNAQEBBQAEggEAYhRq+w4FxL/KYIFSH3qMsC0Reyxxy0WA9EMR
-# mTEBvWCVjjScrdhGRvWUoNtIK7Yjqr2f1VEspb3hdWX0iYhApjJZ5j+uuMdT51O5
-# lbSdJJxzXfs59XxfBwm+Jwy7zK8bcEf4BSWexm9QjuM2NR0p3XNV2Kk7NWvMQk93
-# 2vrlajRLU0IWe7NTsEwOkW8AZfVu31MaaLv512WE57h88uyMysQ2LKY4dDoRwdo6
-# I761g5169TQxNvc8vVhxQlh2BudpY+8ZbRnvaAAdijL4eFime9YXcaCeHMY6X0cp
-# 9Aw4Jz7Vo59YJqwcJcq7gltq45j6OHq7JBEvRz4kZ8lbTMtNnqGCBAQwggQABgkq
+# DAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQURh/4Aynj7rVk5O5nl0Hba1YB
+# ocMwDQYJKoZIhvcNAQEBBQAEggEABUDS3DskdOgzW34SuBct9l/iB6hoa+mKpvPW
+# xg4zwaJodL+ZXLhLHwvah0q06MsSfG2zTlyLhnwe8SYloX+/aKglophbEr9Ha96n
+# YHHVIwiCRUHpORy5+foCk+RWavDOsiKTnkuLNlwFge2FHosoBYVTtnp3dXcxdOr8
+# F1TRPNoaQmuRkLJG5n83WbVowi91EG3RVtSBpKEBBTOoepjYqEVMKzyfYobM1tYw
+# oWolfPvfwmpmEX86X2UANu/hbXN/n2u85Sgshh/EWIK8OAhzKOFErpAGSLiAMOZA
+# 5+ySfjh6nIUcs6a/WSsKVjqqli1Ua49vtr0zatbI3CG29QT07qGCBAQwggQABgkq
 # hkiG9w0BCQYxggPxMIID7QIBATBrMFYxCzAJBgNVBAYTAlBMMSEwHwYDVQQKExhB
 # c3NlY28gRGF0YSBTeXN0ZW1zIFMuQS4xJDAiBgNVBAMTG0NlcnR1bSBUaW1lc3Rh
 # bXBpbmcgMjAyMSBDQQIRAPFkJYwJtuJ74g4yYI5L9KgwDQYJYIZIAWUDBAICBQCg
 # ggFXMBoGCSqGSIb3DQEJAzENBgsqhkiG9w0BCRABBDAcBgkqhkiG9w0BCQUxDxcN
-# MjEwOTI3MTA1MzAzWjA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCAbWb/o5XcrrPZD
-# u3mstI6BWHhPIcVUrhNHbToaPgXF0zA/BgkqhkiG9w0BCQQxMgQwfy1Ndvdck5ue
-# p2CupIF1Xi3HsnG3gejNswg4/fVGdyZQCHgSgoeiuOtOHVmSawFAMIGgBgsqhkiG
+# MjEwOTI3MTYwOTU2WjA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCAbWb/o5XcrrPZD
+# u3mstI6BWHhPIcVUrhNHbToaPgXF0zA/BgkqhkiG9w0BCQQxMgQw+DcqmhSVyN2/
+# RRe55liP5J/TarJYEyjpbe809yPu09Qh5Pjd81gIjoj6bqZJiDp+MIGgBgsqhkiG
 # 9w0BCRACDDGBkDCBjTCBijCBhwQU0xHGlTEbjOc/1bVTGKzfWYrhmxMwbzBapFgw
 # VjELMAkGA1UEBhMCUEwxITAfBgNVBAoTGEFzc2VjbyBEYXRhIFN5c3RlbXMgUy5B
 # LjEkMCIGA1UEAxMbQ2VydHVtIFRpbWVzdGFtcGluZyAyMDIxIENBAhEA8WQljAm2
-# 4nviDjJgjkv0qDANBgkqhkiG9w0BAQEFAASCAgACMaHVwRDB7BVMpwGZz4Fpd93u
-# mXK+e7wbckxoNwDE/B0JTjqPHObEuSZyekwhpDu1DvwJDSA/aEUdla8KlZSISn0V
-# Wwl5qu/eh15GVhzPvbhhRYo5U482wGYl15rC/ncAlAhiCaz9zS4jzTpFyw5tgy31
-# rME3kONues6Ue8NgsevVeXtGwG8XpjonkHpWGMqKm8rpAxR3aA+bKBRtAWp2ge+P
-# Vdt18F9ohhR/htgP6S+lMCDpJFHlx4DejDyQwd5XFUaSaxaWfn2m3zSb+otDu2wh
-# G7Svp4KIroE/MqLAzr2uh7knAQx6OZ3KB0VJhSyqZokaACTTP089+1Sr3amWwysv
-# qXILEA3QammVtNficyQBksilOhpK/UTR9EOKE1d2lCScOWfau6x3tgXWWL+GckTd
-# OO4+mNfjCOeyDUKOBbq6zchAyq2u7i/XrV0mvLZKMRq5o+/tOuLDhSUZpheqZ9F0
-# 6H+wX2JnkJMbW7juBWkMlcTukcv5BWuT8CB0oqgBO3/ppSJ5PkNuulNKizvXRURQ
-# knqaF32erxkhy7uyXAtVTNErMYnzY5ANPVImBH9vtxLIyFsUbydl5ULGcVq7Olaa
-# Yx/HkrAUaR+o8y/BRsInjJaw0FWtftJYdFZmhx6xPIKValIIZrl49olDKMWDDtRJ
-# GF9eLhVpYdzfGecz4g==
+# 4nviDjJgjkv0qDANBgkqhkiG9w0BAQEFAASCAgBvoZ4nZJc8LbIEKOLXrp5FQER3
+# Aklsj3rTUmsCMAzBMxLI3I590MiW+I/qWAXY4y1pVmdMSZkyx/DVaWPtD8+teLAc
+# rxFZMmpqMrsUGBhpNKdjG2aTxpThEDx1VbMxUddHXZ4MYS+ksURFVxn1h7WH6T4O
+# KQiuKMsstwl97t0QSAkaorO1WobsrL4vY/5//ldGV8qUTrJs4FHW3we7wK91SSN7
+# pxrkOAAHiNUmzp7Tt1ZD6d9zr/NTLToxSzwU1RFcvxFajFnneGLYcfBQqt7Hnx78
+# kgK/lyoetxr+UxRllIFGooSUSt5mZUpX10Lc4ktCEQJNcksEbASG6s/SuqEjtcmB
+# A+kPqnisAMoo0olSMFhxtWeg57xazWyJaLQmZmckjHwFyERU0ukOEpa1sLsy2TrG
+# yPPTMif7wYympdUzQCii4F5uFfZYWD7LnLbuJzhCUXHVlrLzLkZ//h1ya1A3KzoP
+# y8YGGj+JxI+h1qgg/XN14d9pRBfQ5Czr5kB1CfpG3/JpFwWs6ZXPNYC7oBbNSG3S
+# dPR472mcNe8TybK4Rss+tganqySAsRIgbJyW5RvFekjw/oJd+hyerwK75v7PHpnG
+# iqcssu1UiLWjaLIC9jwpNWWgfjjDXvBe6oA9SChZhkdNeJyvWWxEpNVvBSCOtm0+
+# 3S7HeNiFGGDA6N2TnA==
 # SIG # End signature block
