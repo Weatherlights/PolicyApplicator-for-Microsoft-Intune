@@ -167,34 +167,39 @@ function Set-JSonNodeByJsonPath {
     $ObjectToSet = $null;
 
     # Browse through the structure and build missing elements.
-    For ( $i = 0; $i -lt $Nodes.Count-1; $i++ ) {
-        $NodeName = $Nodes[$i];
-        $NodeType = $Nodes[$i+1].getType().Name
-        if ( !$CurrentObject[$NodeName] ) {
-            if  ( $Operation -eq "Create" -or $Operation -eq "Replace" ) {                
-                if ( $CurrentObject.GetType().Name -eq "ArrayList" ) {
-                    while ( $CurrentObject.Count -le $NodeName ) {
-                        $CurrentObject.Add($null) | Out-Null
+    if ( $Nodes.Count -gt 1 ) {
+        For ( $i = 0; $i -lt $Nodes.Count-1; $i++ ) {
+            $NodeName = $Nodes[$i];
+            $NodeType = $Nodes[$i+1].getType().Name
+            if ( !$CurrentObject[$NodeName] ) {
+                if  ( $Operation -eq "Create" -or $Operation -eq "Replace" ) {                
+                    if ( $CurrentObject.GetType().Name -eq "ArrayList" ) {
+                        while ( $CurrentObject.Count -le $NodeName ) {
+                            $CurrentObject.Add($null) | Out-Null
+                        }
                     }
+                    switch ( $NodeType ) {
+                        "String"  {
+                            $CurrentObject[$NodeName] = @{};
+                        }
+                        "Int32" {
+                            $CurrentObject[$NodeName] = [System.Collections.ArrayList]@()
+                        }
+                        default {
+                            $CurrentObject[$NodeName] = "";
+                        }
+                    }
+                } else {
+                    return $InputObject;
                 }
-                switch ( $NodeType ) {
-                    "String"  {
-                        $CurrentObject[$NodeName] = @{};
-                    }
-                    "Int32" {
-                        $CurrentObject[$NodeName] = [System.Collections.ArrayList]@()
-                    }
-                    default {
-                        $CurrentObject[$NodeName] = "";
-                    }
-                }
-            } else {
-                return $InputObject;
             }
+           $CurrentObject = $CurrentObject[$NodeName];
+           
         }
-        $CurrentObject = $CurrentObject[$NodeName];
-        $ObjectToSet = $CurrentObject;
+    } else {
+        $i = 0;
     }
+    $ObjectToSet = $CurrentObject;
 
     # Modify the target element
     $NodeName = $Nodes[$i];
@@ -209,9 +214,9 @@ function Set-JSonNodeByJsonPath {
         }
     } else {
         if ( !$ObjectToSet.$NodeName -or $Operation -eq "Replace" -or $Operation -eq "Update" ) { 
-                if ( $CurrentObject.GetType().Name -eq "ArrayList" ) {
-                    while ( $CurrentObject.Count -le $NodeName ) {
-                        $CurrentObject.Add($null) | Out-Null
+                if ( $ObjectToSet.GetType().Name -eq "ArrayList" ) {
+                    while ( $ObjectToSet.Count -le $NodeName ) {
+                        $ObjectToSet.Add($null) | Out-Null
                     }
                     
                 }
@@ -346,8 +351,8 @@ param (
 # SIG # Begin signature block
 # MIIk+QYJKoZIhvcNAQcCoIIk6jCCJOYCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUY7osHgq5C5Wf7F8AfMfJpxLp
-# XD6ggh4pMIIFCTCCA/GgAwIBAgIQDapMmE8NUKJDb44cpXT3cDANBgkqhkiG9w0B
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUOeo3ogIkgRu78TP0IuTNon/M
+# Z3qggh4pMIIFCTCCA/GgAwIBAgIQDapMmE8NUKJDb44cpXT3cDANBgkqhkiG9w0B
 # AQsFADB8MQswCQYDVQQGEwJHQjEbMBkGA1UECBMSR3JlYXRlciBNYW5jaGVzdGVy
 # MRAwDgYDVQQHEwdTYWxmb3JkMRgwFgYDVQQKEw9TZWN0aWdvIExpbWl0ZWQxJDAi
 # BgNVBAMTG1NlY3RpZ28gUlNBIENvZGUgU2lnbmluZyBDQTAeFw0yMTA0MjAwMDAw
@@ -513,33 +518,33 @@ param (
 # bWl0ZWQxJDAiBgNVBAMTG1NlY3RpZ28gUlNBIENvZGUgU2lnbmluZyBDQQIQDapM
 # mE8NUKJDb44cpXT3cDAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAigAoAA
 # oQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4w
-# DAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUYSqBZd2YiTIoeeCDJksqilSI
-# +kcwDQYJKoZIhvcNAQEBBQAEggEAdh43Myl2BAiUIZBnM+6a2uRvzgRqgHsU3HsH
-# /yl6/ehQCDn8N77WaIiaWR7VfAV9Rzpf98o0lbIGowWbSzIOAhuRvyHYFz97PEKG
-# 4hDn+IFLfLoC0XpThJUWR+P7Gm87IUuqygWWG23WjxXBZYDUq+OjwSZX0SL124IO
-# zjuQ5nE+o++Ji2M30tUgzoL6VKWAty1MuppaalqkNd5G34LGK2LauWhcrtTmuLuf
-# hzMjSJ0bnp5RD4aQgp6RlSTUWNR/HhMarMRKaBAP+65v2LM/MPDZn8kzrC0Kun+S
-# MDAv38JEorCSodmeTNP8K+kA0otALRRgEn4P28yTY6uJ/1tGeqGCBAQwggQABgkq
+# DAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUjj35V3Me///3FJyB7r3JzAw2
+# CoEwDQYJKoZIhvcNAQEBBQAEggEAnNe4gU5A2+ZHcxE3XJ8SNqUuNObAy1EyjxPN
+# rMzSXIGnOIPJfQtriwBpMTqdo0SHJaP4qoju6bSNqDltPPvHY6KX1iv6R5tJb/7v
+# uR3ARCHosWn1tYksyyhva15F3A/XyH8bcDVQxkR4WtxcJ4j2L/GdUTpbITNpuZMW
+# yDHWU07/YV2zRjnxAoxkIxaAhT/GjiGMkjt3jtJbPphcb163eB4roKG/XlLQOmEY
+# LCArJrDWi9q+EqFU0gXvhMdY0XHPikzHWbAF7rWubMnT6nPT9cp2ut1dp/hM6YVv
+# hD9Ownffijt2fxVb/d/D/mDGRhAwT+TOwR8ZAoAVv6s1b1C4A6GCBAQwggQABgkq
 # hkiG9w0BCQYxggPxMIID7QIBATBrMFYxCzAJBgNVBAYTAlBMMSEwHwYDVQQKExhB
 # c3NlY28gRGF0YSBTeXN0ZW1zIFMuQS4xJDAiBgNVBAMTG0NlcnR1bSBUaW1lc3Rh
 # bXBpbmcgMjAyMSBDQQIRAPFkJYwJtuJ74g4yYI5L9KgwDQYJYIZIAWUDBAICBQCg
 # ggFXMBoGCSqGSIb3DQEJAzENBgsqhkiG9w0BCRABBDAcBgkqhkiG9w0BCQUxDxcN
-# MjEwOTI1MjExNzEzWjA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCAbWb/o5XcrrPZD
-# u3mstI6BWHhPIcVUrhNHbToaPgXF0zA/BgkqhkiG9w0BCQQxMgQwVwiCIH32b0k+
-# zNc/1ehzb+dhAAQVbce1rlkTZ9j6dYhf3F3vdk0UrD0AP3BNo9iLMIGgBgsqhkiG
+# MjEwOTI3MTUwMDQyWjA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCAbWb/o5XcrrPZD
+# u3mstI6BWHhPIcVUrhNHbToaPgXF0zA/BgkqhkiG9w0BCQQxMgQwxHZSO9JWOmCI
+# OqMYywLbARa51hwW1JfxqAXyywUDJov7jPjeqaYVpdRABW6jg2YmMIGgBgsqhkiG
 # 9w0BCRACDDGBkDCBjTCBijCBhwQU0xHGlTEbjOc/1bVTGKzfWYrhmxMwbzBapFgw
 # VjELMAkGA1UEBhMCUEwxITAfBgNVBAoTGEFzc2VjbyBEYXRhIFN5c3RlbXMgUy5B
 # LjEkMCIGA1UEAxMbQ2VydHVtIFRpbWVzdGFtcGluZyAyMDIxIENBAhEA8WQljAm2
-# 4nviDjJgjkv0qDANBgkqhkiG9w0BAQEFAASCAgCK3jw46YAjqf8+rX2SghzWquBT
-# qDf8BVGtZ2fLnGgoVXvZtHevQWDowdPXQcp8Guhn+gP55B/4lvYx4R/8Ptx/rOUb
-# kv+DWIc0aeMMtLEGyKcitJwX1z4GKtWtCkg/cF7JxmzN3ZCx0CgObaCOjDeLUM7t
-# 0XMgZEsZg4MEZCWiwbDfoRC6eNWnJig6CYoL9lK3IpzaBN9k+YuLgFg+dnvlRGrB
-# 40xulX3V9zw/yLwkZoVDcLc8WH9DSf0zqOGlxrYKVMO0spAFeKy6OIfiKbG/f/Ft
-# 0t6LKyEOqUZuEmWeMiCpqJ4qmLn0+Q41R5hSLI4FrEeZdUTj2KpiYjb2dRsB/lFk
-# 5ue6WxCtU1VBUVP06LrvZMojza2zvsRr1/Jl/lgi40dOt5rt6rwRaaUYTpqhRPBv
-# m4pixcvKV01NcA9Arpi97tuy19E2varCj2HVrIm3dM22aT4mQbKqogzsmp+zZCjh
-# 5E7VW5+/DqxWvjyidqbFpBWggzQeYvig/zCUMTssyu9E88RRfjyMyki4oRasZRI1
-# KTCNh//u+FyNsx33F/2xepkBRxp2Py5gPgGxKZfme6PuYMJJOB1ndzD2pATzBHt0
-# EzjBBX1knD+Zc1MwLPBGkzVZMiizrbpPK6krALqHYo5Cx9+06axY+IAkQFMPHq9V
-# iXHDjUz+HFiqG5qbgQ==
+# 4nviDjJgjkv0qDANBgkqhkiG9w0BAQEFAASCAgC9qZCtcpBNCmIame4hUNBz3HXS
+# xImX7sIXTgaOeR0PWvuQgbjyQVmIYFGASN+agEVMPNCWTk39X0qjp6VIqhLhotTC
+# nQ4WjYiCN2uFqwPmoiPfhFbXFZaXvIW4bwq+JOw5+v9GNVwzh+aNd13Dbf7EX+5Z
+# 2t8so3l6KlDjd+WmM9WyUQKYRTs+vk1JnzmZnXEvX7mrYkDAFfqIpMzATx0nFVbv
+# 0p+5hjIOdh3qqCgHjQ12UMVKQcnekff9rjTZqDCv7+pSWqxhK1baso8aWOtD211j
+# MaBanQJHmBd9JcBYxFYspe+WJawiTB5qdPFuO+Km5roNc82j8JncaFW1UTUN9RUN
+# 5tOLnc/gbTVAno0N0QkaGMw+pweMk8ZY2BGSz5U2LLW76IkC46IIRDta1CtgtEDq
+# h5N05tpcu72yvUVyCoATP4FJekX3TC5IZJawQz1WHhK5iXyL5tPrLul69fJBGMIg
+# WRuloyq82tWNoPeFyEa76nT6bpD/rVGAqL30C2/k+9TVbIlAS6YxvuEBgqenm6a9
+# KJuXqDrraO53jbO322Jz/aTGbg93zIoP6R7baSeV0Ic1xD8F7zNs0ua1Ikps8CDw
+# rIge6x65i6sln30uCMP0W7pXOUkyvJKTsjSYcup1wz43RPLtlqpRyYaA5hBrn59h
+# 8jBIrt0AyxBVSnu0ag==
 # SIG # End signature block
