@@ -8,8 +8,8 @@ Currently the project is in a very early stage and even though the scripts and t
 
 ### Key Features
 
-* Creates an ADMX policy template and all corresponding OMA-URIs from any ini-, xml- or list file.
-* <strong>New:</strong> You can now convert registry structures to ADMX policy templates and OMA-URI sets that work without the PolicyApplicator Agent <em>(Currently limited to Strings, Dwords and MultiSZ values)</em>.
+* Creates an ADMX policy template and all corresponding OMA-URIs from any ini-, xml-, json- **(NEW!)** or list file.
+* You can convert registry structures to ADMX policy templates and OMA-URI sets that work without the PolicyApplicator Agent <em>(Currently limited to Strings, Dwords and MultiSZ values)</em>.
 * Upload your created files to the intune console.
 * Supports different operations:
   * Create: Create settings that do not exist (Ideal for recommended settings)
@@ -18,6 +18,7 @@ Currently the project is in a very early stage and even though the scripts and t
   * Replace: Create settings or overwrites them (Ideal to enforce policies)
 * As a pro you can modify the configurations:
   * Use XPath to build and modify XML
+  * Use JSON to build and modify JSON
   * Use Sections and Keys to modify ini files 
 * Ready to use <a href="https://github.com/Weatherlights/PolicyApplicator-for-Microsoft-Intune/tree/main/Binaries/Ready%20to%20use%20Agent">MSI-/EXE-Agent</a> that you deploy using <a href="https://github.com/Weatherlights/PolicyApplicator-for-Microsoft-Intune/blob/b4632eaa412b0b688f62b8b72b2b18089ec15a20/Documentation/AgentInstallation.md">LoB App</a> or Win32
 * Works on Windows 11
