@@ -1,4 +1,4 @@
-## About PolicyApplicator for Intune
+## PolicyApplicator for Microsoft Intune
 
 Welcome to the PolicyApplicator for Microsoft Intune, the all-you-need configuration experience for your 3rd party applications in Intune.
 
