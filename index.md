@@ -1,4 +1,4 @@
-## Manage (nearly) all 3rd Party Apps with OMA-DM
+## About PolicyApplicator for Intune
 
 Welcome to the PolicyApplicator for Microsoft Intune, the all-you-need configuration experience for your 3rd party applications in Intune.
 
@@ -34,14 +34,14 @@ So there are 5 steps:
 4. The configuration profile gets translated into registry settings with a technique called ADMX Ingestion.
 5. The PolicyApplicator Agent translates the registry settings into the target configuration file.
 
-### Check out the Demo!
+## Check out the Demo
 
 Check out this demonstration where we configure the VLC media player vlcrc configuration by capturing a reference configuration:
 <p align="center">
  <a href="http://www.youtube.com/watch?v=M_W8YJvuZQ4"><img src="http://img.youtube.com/vi/M_W8YJvuZQ4/0.jpg" alt="Demo on Youtube" /></a>
 </p>
 
-### Want to try out yourself?
+## Get started
 
 You can find the latest release <a href="https://github.com/Weatherlights/PolicyApplicator-for-Microsoft-Intune/releases">here</a>.
 
