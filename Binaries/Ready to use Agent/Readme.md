@@ -11,6 +11,7 @@ The agent installer does 3 things:
   * Modules\IniFile.psm1
   * Modules\ListFile.psm1
   * Modules\Generic.psm1
+  * Modules\JsonFile.psm1
 * Create two scheduled tasks that will run when intune has synchronized:
   * One task will run within the user context to apply user policies.
   * The other will run as system user to run machine policies.
