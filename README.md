@@ -18,6 +18,7 @@ However the code is still a little dirty so don't judge me ;). The powershell co
 ## How it works
 I hope the following graphic explains a little bit how the tool works:
 ![How it works](/Documentation/howitworks.png)
+
 So there are 5 steps:
 1. Convert one of your configuration files using one of the Convert-Scripts into a csv policy file.
 2. Upload the csv policy file using the Invoke-CsvtoIntuneUpload.ps1 script.
