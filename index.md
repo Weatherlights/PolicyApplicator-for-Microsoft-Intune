@@ -44,7 +44,10 @@ Check out this demonstration where we configure the VLC media player vlcrc confi
 
 ## Get started
 
-You can find the latest release <a href="https://github.com/Weatherlights/PolicyApplicator-for-Microsoft-Intune/releases">here</a> or within the Microsoft Store:
+You can find the latest release<a href="https://github.com/Weatherlights/PolicyApplicator-for-Microsoft-Intune/releases">here</a> or within the Microsoft Store:
+### Get the PolicyApplicator Conversion Kit
 <a href="ms-windows-store://pdp/?productid=XPFFSV0VCDKTM5"><img height="72" src="https://raw.githubusercontent.com/Weatherlights/PolicyApplicator-for-Microsoft-Intune/gh-pages/English_L.png" alt="Get PolicyApplicator Conversion Kit"/></a>
+### Get the PolicyApplicator Agent
+<a href="ms-windows-store://pdp/?productid=XP99K4PMPD7JH3"><img height="72" src="https://raw.githubusercontent.com/Weatherlights/PolicyApplicator-for-Microsoft-Intune/gh-pages/English_L.png" alt="Get PolicyApplicator Conversion Kit"/></a>
 
 Also check out the documentation <a href="https://github.com/Weatherlights/PolicyApplicator-for-Microsoft-Intune/wiki">here</a>.
