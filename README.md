@@ -5,7 +5,7 @@ This project is currently in alpha status. We have a working client that can be 
 
 However the code is still a little dirty so don't judge me ;). The powershell code -as it is published here- has been digitally signed using a public code signature.
 ## Key Features
-* Creates an ADMX policy template and all corresponding OMA-URIs from any ini-, xml- or list file.
+* Creates an ADMX policy template and all corresponding OMA-URIs from any ini-, xml-, json- or list file.
 * Creates an ADMX policy template and all corresponsing OMA-URIs from Registry Structures. This one works even without the PolicyApplicator Agent!
 * Upload your created files into the intune console.
 * Supports different operations:
@@ -13,11 +13,12 @@ However the code is still a little dirty so don't judge me ;). The powershell co
   * Update: Update existing settings
   * Delete: Delete existing settings
   * Replace: Create settings or overwrites them
-* As a pro you can modify the configurations. All it takes is a little xpath :).
+* As a pro you can modify the configurations. All it takes is a little xpath/json :).
 
 ## How it works
 I hope the following graphic explains a little bit how the tool works:
 ![How it works](/Documentation/howitworks.png)
+
 So there are 5 steps:
 1. Convert one of your configuration files using one of the Convert-Scripts into a csv policy file.
 2. Upload the csv policy file using the Invoke-CsvtoIntuneUpload.ps1 script.
