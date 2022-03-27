@@ -102,7 +102,7 @@ function Get-ADMXPolicyForIni {
     $KeyXmlCompatible = ConvertTo-XmlCompatibleString $Key;
 
 		$policy = '
-<!-- Policy '+$PolicyNameXMLCompatible+' -->
+<!-- Policy '+$CategoryNameXmlCompatible+' -->
 <policy name="'+$PolicyNameXMLCompatible+'" class="'+$ClassXmlCompatible+'" displayName="$(string.Nothing)" explainText="$(string.Nothing)" key="'+$KeyXmlCompatible+'" valueName="value" >
 	<parentCategory ref="'+$CategoryNameXmlCompatible+'" />
 	<supportedOn ref="SupportedOn" />
@@ -388,8 +388,8 @@ Note that this template may only work when the PolicyApplicator Client is instal
 # SIG # Begin signature block
 # MIIk+QYJKoZIhvcNAQcCoIIk6jCCJOYCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUeTGTKjpQgYtLf2olulwmX80S
-# dneggh4pMIIFCTCCA/GgAwIBAgIQDapMmE8NUKJDb44cpXT3cDANBgkqhkiG9w0B
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU2HH6nUVv90k0a6iba+U1UpwP
+# Feeggh4pMIIFCTCCA/GgAwIBAgIQDapMmE8NUKJDb44cpXT3cDANBgkqhkiG9w0B
 # AQsFADB8MQswCQYDVQQGEwJHQjEbMBkGA1UECBMSR3JlYXRlciBNYW5jaGVzdGVy
 # MRAwDgYDVQQHEwdTYWxmb3JkMRgwFgYDVQQKEw9TZWN0aWdvIExpbWl0ZWQxJDAi
 # BgNVBAMTG1NlY3RpZ28gUlNBIENvZGUgU2lnbmluZyBDQTAeFw0yMTA0MjAwMDAw
@@ -555,33 +555,33 @@ Note that this template may only work when the PolicyApplicator Client is instal
 # bWl0ZWQxJDAiBgNVBAMTG1NlY3RpZ28gUlNBIENvZGUgU2lnbmluZyBDQQIQDapM
 # mE8NUKJDb44cpXT3cDAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAigAoAA
 # oQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4w
-# DAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUixyaAUhiRWH6NFVZEfvkboZz
-# 5+0wDQYJKoZIhvcNAQEBBQAEggEAYVBVL9ujMDukpbV0QxoiUL6hmPXbS69fEfhO
-# hJrFhLvTS3I2bwBZYyreF+ipyIhHk5dkMFztHbD/tLnZDUA/3ALDxfSZbKzFPv6Y
-# BvwiCKyCd+41mAV9s4RIwu792+M6xpWhZ5ZSro72wGE2/5YzSyz8utpI5G4l+e2V
-# tG5PC5R6bZ5u4yihaSLDhbPHDDa09ivvRUQQ0LPv7ZYU4/2K5ERLfXyqTmAT1RBL
-# Q+ptNf6acA6hDct+k+mir5wZJEL8DlKjaGLH1FKxkkopsggf7tB7gLpbCge3hOfD
-# 8/I+95Ah5RLHI/XDMRhvfPWtCGp5ZDrE43bTGyT5GQbX1jV+yqGCBAQwggQABgkq
+# DAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQU1Ij7TGGgM2Qjjv5e9/kstkgB
+# +VwwDQYJKoZIhvcNAQEBBQAEggEAG3p9s0vrTH6SLCtnRopdN6gHaAwbkzM1HcnD
+# Rg+ZcMleCzgBwHEtW8xOdEd8zuxn/QHvYYDeHL2iFYQ6F+4m7iKE9BUeTShpxRhJ
+# UuM4JfdB9tBuCSp52Nlc9eeHSbG8AYkWC9ocqKS2V4O82sRIkIoJm3dynn4SlUrO
+# EwyrSzqKWiBCJfvu6tN985ZvBPJh8rB6eiMA3flgowDL+mWFwy768irOD5frxUR+
+# ISDUmL+fSZVqhxudIQ/jIIv/GB0NhUVVclkudyH+4c+/2rNTVbikLxhDvsS59JbV
+# gqW56VJ9nfydXgS0WhJdoGminBj42xJYEGCEfV3AwlQrHRZOZKGCBAQwggQABgkq
 # hkiG9w0BCQYxggPxMIID7QIBATBrMFYxCzAJBgNVBAYTAlBMMSEwHwYDVQQKExhB
 # c3NlY28gRGF0YSBTeXN0ZW1zIFMuQS4xJDAiBgNVBAMTG0NlcnR1bSBUaW1lc3Rh
 # bXBpbmcgMjAyMSBDQQIRAPFkJYwJtuJ74g4yYI5L9KgwDQYJYIZIAWUDBAICBQCg
 # ggFXMBoGCSqGSIb3DQEJAzENBgsqhkiG9w0BCRABBDAcBgkqhkiG9w0BCQUxDxcN
-# MjIwMzI3MDkyNjE2WjA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCAbWb/o5XcrrPZD
-# u3mstI6BWHhPIcVUrhNHbToaPgXF0zA/BgkqhkiG9w0BCQQxMgQwCXd05FXsH8Qu
-# jnoqbSxj0kTlw+vm1KHrY5uiCaly2hIoz0u0TlVoVrPjJQpRn9UjMIGgBgsqhkiG
+# MjIwMzI3MDkxNTMyWjA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCAbWb/o5XcrrPZD
+# u3mstI6BWHhPIcVUrhNHbToaPgXF0zA/BgkqhkiG9w0BCQQxMgQw6zz+va5ixZhI
+# V6sGrXr7X8E8tvaeBgX4qQJ+lvEkY4JYeiWiG2Lfkkp9IJLBSc8YMIGgBgsqhkiG
 # 9w0BCRACDDGBkDCBjTCBijCBhwQU0xHGlTEbjOc/1bVTGKzfWYrhmxMwbzBapFgw
 # VjELMAkGA1UEBhMCUEwxITAfBgNVBAoTGEFzc2VjbyBEYXRhIFN5c3RlbXMgUy5B
 # LjEkMCIGA1UEAxMbQ2VydHVtIFRpbWVzdGFtcGluZyAyMDIxIENBAhEA8WQljAm2
-# 4nviDjJgjkv0qDANBgkqhkiG9w0BAQEFAASCAgCmrZ0l1r7ZGnzqdc0gZuxOXiij
-# 3bSdCHANHSf1gXSvwpeTv2GkYq13vp/svl9xXNQISiIT7MY1qdXmFYD2sNnvnWO3
-# NWNfJvOCDsWmJeQOU6CcoCfaRnDWA4JaInwMpY68GO3EYsSjbDs0BMVpqASjQyje
-# RuTrTJ3vuGpuDs9rQD3tA/ysLfvVXp+6xYvPSbbvgh5VXTzEq+D3xNsmUzUioGSN
-# bejipmoW03gZ200F0uPR9LSA8En13awh03zyFI2/qMz9TNz0Pyq7SrvtKfpS7JUU
-# pI8uCzv/JXUHCkL20IGo/qy5F3Z3QNDC8mRd5Tk0iXbxoDjR7s1st8wyTNXGB3SX
-# x0p2lmXueqXmQKk0+YQKxeDa90FumP1SAOrNLZgFCUYPyhDjfuJXuHJck9kqp9dr
-# 1Rjp0OA6+TXZxtHSlW4X1/00JB+Yn/A+pwthXq6VgS0IQ8MVuceEFF76fPA81TQN
-# s/RZgpTaTeWFOlwoT8Ln2Foyv//zamlaTmwLJyyrHvji91Mv/uN+b/+CpX4onNbc
-# JQ77vDfH3IfF0aMQDHr0yzN7fcYSoxSKAzM2FhfnvaK/AbUkgf+zK9uYW1fHcz5x
-# 81eLvq0xnvi9cPzeLfHj8MiwVadAOAm3Wpajk2b2ZtasMjGx1iWygUhpce6QyFTM
-# auasKL/bzKlZMCnvmA==
+# 4nviDjJgjkv0qDANBgkqhkiG9w0BAQEFAASCAgAjeUaPhSJFjt2C+irIOYmZE5R+
+# qLztEHTwrUGaqcjHc66oqieLvEDhDhuFER/n5bniZZbsm8OXRa6mhKVhPLCsMmrE
+# oRP1boxOnbo2zjiNJxYuvqx3j+wvHaRXBtgDHLC+AlIKx3u62+vKYaB/RmVdDQNd
+# mhGYpVm19NCOsmQJ6MGUqzJkmCdJFePyLOEwRe4K+/xCnInvOHcmMlFYXBl+P1+e
+# wLnmPy2KaWe9OgeDM3ETjgzFFg+FxalNYN8rzN1LVeX0KlxY43e+UBe1yMoIb7hu
+# qhmLZZOO7Dc/dVV54xYJ/gIOKki7TgVzR4+z3v6GNtEafHZQZKMktgR2p+cVNrx5
+# fRd6rRsfLKsOVFCSnw7RRIHkv+zl6lFs36I+Wna9ZEmTo04srTv3/o2dl2ELjXRl
+# FeRwQM1TYJZL2JcY+ZFSp6tTZeWI8TP3UJTxfxqrXyuj7QF8zXB1kTxxpQ7CGkd1
+# mTdiXZCObYTtfKJ8t3ZvLG9fKpguz2/ql/l/NCAgflYQdP6pT+Fg9HnqvJA0jOhP
+# Ri59VpqGFHAR+jgc1183azpDM5lVHEf95UELGU/ZaKApAGzI4b/7993zAx/fpk0v
+# c2d4o1TW13xeaJlUyC8FzjGanRI1qOL6QXP3zU/vgM5Jhy0vTZLynn0XZyWH7RiO
+# xLhF0W7Xblbg6s9yyA==
 # SIG # End signature block
