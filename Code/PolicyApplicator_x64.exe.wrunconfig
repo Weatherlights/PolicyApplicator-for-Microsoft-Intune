@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!-- 
+Description: This is used to query the powershell skripts from the task scheduler. The PolicyApplicator.exe will read this configuration and run the process as defined here. 
+
+Author: Hauke Goetze
+Link: https://policyapplicator.weatherlights.com
+-->
+<config>
+  <Process>
+    <Filename>powershell.exe</Filename>
+    <WorkingDirectory>[APPDIR]</WorkingDirectory>
+    <Arguments>-executionpolicy AllSigned -windowstyle hidden -file .\PolicyApplicator.ps1 -Action Remediate [ARGS]</Arguments>
+    <WindowStyle>Hidden</WindowStyle>
+  </Process>
+</config>
