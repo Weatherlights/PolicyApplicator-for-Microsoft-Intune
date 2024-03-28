@@ -1,7 +1,7 @@
 # PolicyApplicator for Microsoft Intune
 Configure any app you like using OMA-DM. This little tool will automatically convert configuration files (currently xml, ini and lists) into ready to use Intune configuration profiles that you can simply deploy. The tool consists out of 3 components that allow you the creation, upload and application of policies.
 
-However the code is still a little dirty so don't judge me ;). The powershell code -as it is published here- has been digitally signed using a public code signature.
+The powershell code -as it is published here- has been digitally signed using a public code signature.
 ## Key Features
 * Creates an ADMX policy template and all corresponding OMA-URIs from any ini-, xml-, json- or list file.
 * Creates an ADMX policy template and all corresponsing OMA-URIs from Registry Structures. This one works even without the PolicyApplicator Agent!
