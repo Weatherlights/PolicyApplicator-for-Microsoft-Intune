@@ -42,6 +42,8 @@ Check out this demonstration where we configure the VLC media player vlcrc confi
  <a href="http://www.youtube.com/watch?v=M_W8YJvuZQ4"><img src="http://img.youtube.com/vi/M_W8YJvuZQ4/0.jpg" alt="Demo on Youtube" /></a>
 </p>
 
+Or read the <a href="https://github.com/Weatherlights/PolicyApplicator-for-Microsoft-Intune/wiki/Tutorial:-Configure-Visual-Studio-Code-with-PolicyApplicator">article</a> where we configure Visual Studio Code.
+
 ## Get started
 
 You can find the latest release<a href="https://github.com/Weatherlights/PolicyApplicator-for-Microsoft-Intune/releases">here</a> or within the Microsoft Store:
