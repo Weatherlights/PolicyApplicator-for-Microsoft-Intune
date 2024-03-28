@@ -47,11 +47,11 @@ Check out this demonstration where we configure the VLC media player vlcrc confi
 You can find the latest release<a href="https://github.com/Weatherlights/PolicyApplicator-for-Microsoft-Intune/releases">here</a> or within the Microsoft Store:
 ### Get the PolicyApplicator Conversion Kit
 <p>The conversion kit contains all the script you need to capture your existing configurations and upload them to Microsoft Intune.</p>
-<a href="ms-windows-store://pdp/?productid=XPFFSV0VCDKTM5"><img height="72" src="https://raw.githubusercontent.com/Weatherlights/PolicyApplicator-for-Microsoft-Intune/gh-pages/English_L.png" alt="Get PolicyApplicator Conversion Kit"/></a>
+<a href="https://apps.microsoft.com/store/detail/XPFFSV0VCDKTM5"><img height="72" src="https://raw.githubusercontent.com/Weatherlights/PolicyApplicator-for-Microsoft-Intune/gh-pages/English_L.png" alt="Get PolicyApplicator Conversion Kit"/></a>
 <p>You can also use winget to Install by running: <code>winget install "PolicyApplicator Conversion Kit"</code></p>
 ### Get the PolicyApplicator Agent
 <p>The agent should be installed on your managed machines. The Agent applies your configurations to the application.</p>
-<a href="ms-windows-store://pdp/?productid=XP99K4PMPD7JH3"><img height="72" src="https://raw.githubusercontent.com/Weatherlights/PolicyApplicator-for-Microsoft-Intune/gh-pages/English_L.png" alt="Get PolicyApplicator Conversion Kit"/></a>
-<p>You can also use winget to Install by running: <code>winget install "PolicyApplicator"</code></p>
+<a href="https://apps.microsoft.com/store/detail/XP99K4PMPD7JH3"><img height="72" src="https://raw.githubusercontent.com/Weatherlights/PolicyApplicator-for-Microsoft-Intune/gh-pages/English_L.png" alt="Get PolicyApplicator Conversion Kit"/></a>
+<p>You can also use winget to Install by running: <code>winget install "PolicyApplicator"</code> or throught the <a href="https://github.com/Weatherlights/PolicyApplicator-for-Microsoft-Intune/wiki/Agent-Installation-Guide#microsoft-store-app-recommended"><em>Microsoft Store app (new)</em> app type</a> in Microsoft Intune</p>
 
 Also check out the documentation <a href="https://github.com/Weatherlights/PolicyApplicator-for-Microsoft-Intune/wiki">here</a>.
