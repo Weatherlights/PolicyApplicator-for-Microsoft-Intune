@@ -1,5 +1,3 @@
-## PolicyApplicator for Microsoft Intune
-
 Welcome to the PolicyApplicator for Microsoft Intune, the all-you-need configuration experience for your 3rd party applications in Intune.
 
 Configure 3rd party applications using OMA-DM by converting your existing configuration in a ready to use Intune configuration profiles. The PolicyApplicator can currently convert ini- xml-, json- and list files without any hustle aswell as registry structures.
