@@ -52,6 +52,6 @@ You can find the latest release<a href="https://github.com/Weatherlights/PolicyA
 ### Get the PolicyApplicator Agent
 <p>The agent should be installed on your managed machines. The Agent applies your configurations to the application.</p>
 <a href="https://apps.microsoft.com/store/detail/XP99K4PMPD7JH3"><img height="72" src="https://raw.githubusercontent.com/Weatherlights/PolicyApplicator-for-Microsoft-Intune/gh-pages/English_L.png" alt="Get PolicyApplicator Conversion Kit"/></a>
-<p>You can also use winget to Install by running: <code>winget install "PolicyApplicator"</code> or throught the <a href="https://github.com/Weatherlights/PolicyApplicator-for-Microsoft-Intune/wiki/Agent-Installation-Guide#microsoft-store-app-recommended"><em>Microsoft Store app (new)</em> app type</a> in Microsoft Intune</p>
+<p>You can also use winget to Install by running: <code>winget install "PolicyApplicator"</code> or through the <a href="https://github.com/Weatherlights/PolicyApplicator-for-Microsoft-Intune/wiki/Agent-Installation-Guide#microsoft-store-app-recommended"><em>Microsoft Store app (new)</em> app type</a> in Microsoft Intune</p>
 
 Also check out the documentation <a href="https://github.com/Weatherlights/PolicyApplicator-for-Microsoft-Intune/wiki">here</a>.
